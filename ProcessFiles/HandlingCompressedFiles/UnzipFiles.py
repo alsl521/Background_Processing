@@ -4,18 +4,17 @@ import shutil
 
 
 # 解压.zip格式的文件
-def Unzip_Zip_Files(filePath, targetFolder, ModelName, MenuName):
+def Unzip_Zip_Files(filePath, targetFolder, filename):
     """
     解压.zip格式的文件到目标文件夹。
 
     Args:
         filePath (str): 压缩文件的路径。
         targetFolder (str): 目标文件夹路径。
-        ModelName (str): 模型名称。
-        MenuName (str): 菜单名称。
-
+        filename (str): 文件名称
     """
-
+    parts = filename.split("_")
+    filename = parts[-1]
     # 使用zipfile库打开.zip文件
     with zipfile.ZipFile(filePath, 'r') as zip_ref:
         # 遍历zip文件中的每个文件
@@ -25,7 +24,7 @@ def Unzip_Zip_Files(filePath, targetFolder, ModelName, MenuName):
 
             # 设定指定名称
             file_extension = os.path.splitext(original_filename)[1]
-            encoded_filename = ModelName + "_" + MenuName + file_extension
+            encoded_filename = filename + file_extension
 
             # 构建目标路径
             destination_path = os.path.join(targetFolder, encoded_filename)

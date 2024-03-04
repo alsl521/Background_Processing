@@ -1,4 +1,9 @@
-def handling_spreadsheet_files(targetFolder, ModelName, MenuName, file):
+from Utils.CopyFiles import copy_models_files
+from Utils.CreateFolders import create_user_model_folders
+from Utils.DeleteFiles import delete_folder_contents_only
+
+
+def handling_spreadsheet_files(filename, file):
     """
         处理电子表格文件。
 
@@ -13,23 +18,25 @@ def handling_spreadsheet_files(targetFolder, ModelName, MenuName, file):
 
     """
     # 获取文件名
+    delete_folder_contents_only("Data/TemporaryFolder")  # 清空临时文件夹内容
+    folder_path = create_user_model_folders(filename)
     file_name = file.name
-
     # 确定是哪个类型的文件
     file_parts = file_name.split('.')
 
-    table_name = ""
+    parts = filename.split("_")
+
     if file_parts[1] == "txt":
-        handling_txt_files(ModelName, MenuName, file)
+        handling_txt_files(parts[-1], file)
     elif file_parts[1] == "xlsx":
-        handling_xlsx_files(ModelName, MenuName, file)
+        handling_xlsx_files(parts[-1], file)
     elif file_parts[1] == "xls":
-        handling_xls_files(ModelName, MenuName, file)
+        handling_xls_files(parts[-1], file)
 
-    return table_name
+    copy_models_files("Data/TemporaryFolder", folder_path)
 
 
-def handling_txt_files(ModelName, MenuName, file):
+def handling_txt_files(filename, file):
     """
     处理 TXT 文件。
 
@@ -40,7 +47,7 @@ def handling_txt_files(ModelName, MenuName, file):
 
     """
     # 获取文件数据并存储起来
-    filePath = f"TemporaryFolder/{ModelName}_{MenuName}.txt"
+    filePath = f"Data/TemporaryFolder/{filename}.txt"
     file_obj = file
     f = open(filePath, mode='wb')
     for chunk in file_obj.chunks():
@@ -48,7 +55,7 @@ def handling_txt_files(ModelName, MenuName, file):
     f.close()
 
 
-def handling_xlsx_files(ModelName, MenuName, file):
+def handling_xlsx_files(filename, file):
     """
     处理 XLSX 文件。
 
@@ -59,7 +66,7 @@ def handling_xlsx_files(ModelName, MenuName, file):
 
     """
     # 获取文件数据并存储起来
-    filePath = f"TemporaryFolder/{ModelName}_{MenuName}.xlsx"
+    filePath = f"Data/TemporaryFolder/{filename}.xlsx"
     file_obj = file
     f = open(filePath, mode='wb')
     for chunk in file_obj.chunks():
@@ -67,7 +74,7 @@ def handling_xlsx_files(ModelName, MenuName, file):
     f.close()
 
 
-def handling_xls_files(ModelName, MenuName, file):
+def handling_xls_files(filename, file):
     """
     处理 XLS 文件。
 
@@ -78,7 +85,7 @@ def handling_xls_files(ModelName, MenuName, file):
 
     """
     # 获取文件数据并存储起来
-    filePath = f"TemporaryFolder/{ModelName}_{MenuName}.xls"
+    filePath = f"Data/TemporaryFolder/{filename}.xls"
     file_obj = file
     f = open(filePath, mode='wb')
     for chunk in file_obj.chunks():

@@ -1,3 +1,6 @@
+import os
+from osgeo import ogr
+
 from pyproj import CRS
 
 
@@ -37,6 +40,28 @@ def get_epsg_from_prj(prj_file_path):
         # 处理异常情况
         print(f"Error reading .prj file: {e}")
         return None
+
+
+def get_shp_field_attributes(path, shpName):
+    layer = None
+    epsg_code = None
+    attribute_info_list = []  # 用于存储属性字段信息的列表
+
+    # 创建表逻辑处理
+    shapefile_path = os.path.join("Data", "Admin", path, shpName + ".shp")
+    # 打开Shapefile
+    shapefile = ogr.Open(shapefile_path)
+
+    if shapefile:
+        # 获取第一个图层（Assuming there is only one layer in the Shapefile）
+        layer = shapefile.GetLayer(0)
+        attribute_info_list = get_Shp_Field_Attributes(layer)
+
+    # 关闭Shapefile
+    shapefile = None
+    layer = None
+
+    return attribute_info_list
 
 
 def get_Shp_Field_Attributes(layer):

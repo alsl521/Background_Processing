@@ -22,7 +22,27 @@ from PublicServices import views as PublicServicesViews
 urlpatterns = [
     path('admin/', admin.site.urls),
 
-    path('selectModels/', PublicServicesViews.selectModels),
+    path('UpLoadFiles/BasicDataService/BasicGeographicData/StudyAreaScope',
+         PublicServicesViews.upLoad_BasicDataService_BasicGeographicData_StudyAreaScope),
 
-    path('UpLoadFiles/', PublicServicesViews.upLoadFiles)
+    path('creat/BasicDataService/BasicGeographicData/StudyAreaScope/Table',
+         PublicServicesViews.creat_BasicDataService_BasicGeographicData_StudyAreaScope_Table),
+
+    path('update/BasicDataService/BasicGeographicData/StudyAreaScope/Table',
+         PublicServicesViews.update_BasicDataService_BasicGeographicData_StudyAreaScope_Table),
+
+    path('publish/BasicDataService/BasicGeographicData/StudyAreaScope',
+         PublicServicesViews.publish_BasicDataService_BasicGeographicData_StudyAreaScope),
+
+    path('upLoad/BasicDataService/MonitoringData/RiverMonitoringStation/FlowRate',
+         PublicServicesViews.upLoad_BasicDataService_MonitoringData_RiverMonitoringStation_FlowRate),
+
+    path('creat/BasicDataService/MonitoringData/RiverMonitoringStation/FlowRate/Table',
+         PublicServicesViews.creat_BasicDataService_MonitoringData_RiverMonitoringStation_FlowRate_Table),
+
+    path('update/BasicDataService/MonitoringData/RiverMonitoringStation/FlowRate/Table',
+         PublicServicesViews.update_BasicDataService_MonitoringData_RiverMonitoringStation_FlowRate_Table),
+
+    path('publish/BasicDataService/MonitoringData/RiverMonitoringStation/FlowRate',
+         PublicServicesViews.publish_BasicDataService_MonitoringData_RiverMonitoringStation_FlowRate),
 ]
