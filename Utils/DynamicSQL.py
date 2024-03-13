@@ -79,6 +79,14 @@ def generate_create_table_sql_from_shp(table_name, field_info_list, field_from_f
 def get_create_spreadsheet_sql(shpName, table_name):
     cases = {
         "FlowRate": f"CREATE TABLE IF NOT EXISTS {table_name} (Fid serial PRIMARY KEY,name VARCHAR,time TIMESTAMP,flow double precision)",
+        "Temperature": f"CREATE TABLE IF NOT EXISTS {table_name} (Fid serial PRIMARY KEY,name VARCHAR,time TIMESTAMP,maxtemperature double precision,mintemperature double precision)",
+        "AtmosphericPressure": f"CREATE TABLE IF NOT EXISTS {table_name} (Fid serial PRIMARY KEY,name VARCHAR,time TIMESTAMP,atmosphericpressure double precision)",
+        "Evaporation": f"CREATE TABLE IF NOT EXISTS {table_name} (Fid serial PRIMARY KEY,name VARCHAR,time TIMESTAMP,evaporation double precision)",
+        "Rainfall": f"CREATE TABLE IF NOT EXISTS {table_name} (Fid serial PRIMARY KEY,name VARCHAR,time TIMESTAMP,rainfall double precision)",
+        "SolarRadiation": f"CREATE TABLE IF NOT EXISTS {table_name} (Fid serial PRIMARY KEY,name VARCHAR,time TIMESTAMP,solarradiation double precision)",
+        "CloudCover": f"CREATE TABLE IF NOT EXISTS {table_name} (Fid serial PRIMARY KEY,name VARCHAR,time TIMESTAMP,cloudcover double precision)",
+        "WindSpeedAndDirection": f"CREATE TABLE IF NOT EXISTS {table_name} (Fid serial PRIMARY KEY,name VARCHAR,time TIMESTAMP,windspeed double precision,winddirection double precision)",
+        "WaterTemperature": f"CREATE TABLE IF NOT EXISTS {table_name} (Fid serial PRIMARY KEY,name VARCHAR,time TIMESTAMP,watertemperature double precision)",
     }
     sql_statement = cases.get(shpName)
     return sql_statement
@@ -96,7 +104,6 @@ def insert_into_table_from_shp_sql(table_name, field_from_form, feature, attribu
     for field_info in field_from_form:
         for key, value in field_info.items():
             if value != "":
-
                 result = [d for d in attribute_info_list if d.get('name') == value]
                 type_value = result[0].get('type')
                 if type_value == 'String':
@@ -167,6 +174,8 @@ def update_table_from_form_shp_sql(results, table_name, body_data):
                         sql_statement += column_name + "='" + value + "', "
                     elif "timestamp" in data_type:
                         sql_statement += column_name + "='" + value + "', "
+                    elif value == '':
+                        sql_statement += column_name + "= NULL , "
                     else:
                         sql_statement += column_name + "=" + value + ", "
 

@@ -11,7 +11,7 @@ from Utils.DynamicSQL import update_table_from_form_shp_sql, insert_into_table_f
 
 
 def create_table_from_SpreadsheetFiles_data(body_data, path, shpName):
-    table_name = "Admin" + "_Observation_" + shpName
+    table_name = "Admin_" + shpName + "_Observation"
     table_name = table_name.lower()
     # 删除已存在的表
     drop_table_if_exists(table_name)
@@ -28,7 +28,6 @@ def create_table_from_SpreadsheetFiles_data(body_data, path, shpName):
         if value is not None:
             field_from_form.append({key: value})
     data, attribute = get_xlsx_files_data(path, shpName)
-
     values = get_relationship_between_data_and_fields_from_spreadsheet(field_from_form, attribute, data)
 
     fields = get_table_fields_and_info(table_name)
@@ -219,7 +218,7 @@ def update_table_from_form_shp(param, table_names):
         if body_data["FormName"] == 'Monitoring_Point_Attribute':
             table_name = "Admin" + "_" + table_names
         elif body_data["FormName"] == 'Observation_Data':
-            table_name = "Admin" + "_" + "Observation" + "_" + table_names
+            table_name = "Admin_" + table_names + "_Observation"
     else:
         # 执行 SQL 查询
         table_name = "Admin" + "_" + table_names
@@ -229,11 +228,103 @@ def update_table_from_form_shp(param, table_names):
     table_name = table_name.lower()
 
     query = f"SELECT column_name, data_type FROM information_schema.columns WHERE table_name = '{table_name}';"
+
     cursor.execute(query)
 
     # 提取查询结果
     results = cursor.fetchall()
     dynamicSql = update_table_from_form_shp_sql(results, table_name, body_data)
+
+    print(dynamicSql)
+
     cursor.execute(dynamicSql)
     connection.commit()
+    cursor.close()
+
+
+def get_project_setting(shpName):
+    cursor = connection.cursor()
+    query = f"SELECT table_name FROM admin_project_setting WHERE name = '{shpName}';"
+    cursor.execute(query)
+
+    # 提取查询结果
+    results = cursor.fetchall()
+    result = results[0][0]
+    cursor.close()
+    return result
+
+
+def update_project_setting(shpName, number):
+    cursor = connection.cursor()
+    if number == 1:
+
+        query = f"SELECT table_name FROM admin_project_setting WHERE name = '{shpName}';"
+        cursor.execute(query)
+
+        # 提取查询结果
+        results = cursor.fetchall()
+
+        if len(results) == 0:
+
+            table_name = "Admin_" + shpName
+
+            query = f"INSERT INTO admin_project_setting (name, table_name) VALUES ('{shpName}', '{table_name}');"
+
+            cursor.execute(query)
+
+            connection.commit()
+        else:
+            table_name = "Admin_" + shpName
+
+            query = f"UPDATE admin_project_setting SET  table_name = '{table_name}' WHERE name = '{shpName}';"
+
+            cursor.execute(query)
+
+            connection.commit()
+
+    elif number == 2:
+
+        query = f"SELECT table_name FROM admin_project_setting WHERE name = '{shpName}';"
+        cursor.execute(query)
+
+        # 提取查询结果
+        results = cursor.fetchall()
+
+        if len(results) == 0:
+
+            table_name = "Admin_" + shpName
+
+            query = f"INSERT INTO admin_project_setting (name, table_name) VALUES ('{shpName}', '{table_name}');"
+
+            cursor.execute(query)
+
+            connection.commit()
+
+            table_name = "Admin_" + shpName + "_Observation"
+
+            query = f"INSERT INTO admin_project_setting (name, table_name) VALUES ('{shpName}', '{table_name}');"
+
+            cursor.execute(query)
+
+            connection.commit()
+
+        else:
+            table_name = "Admin_" + shpName
+
+            query = f"UPDATE admin_project_setting SET  table_name = '{table_name}' WHERE name = '{shpName}';"
+
+            cursor.execute(query)
+
+            connection.commit()
+
+            query_name = shpName + "_Observation"
+
+            table_name = "Admin_" + shpName + "_Observation"
+
+            query = f"UPDATE admin_project_setting SET  table_name = '{table_name}' WHERE name = '{query_name}';"
+
+            cursor.execute(query)
+
+            connection.commit()
+
     cursor.close()
