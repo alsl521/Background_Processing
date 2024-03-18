@@ -152,6 +152,84 @@ urlpatterns = [
     path('publish/BasicDataService/MonitoringData/MeteorologicalMonitoringStation/WaterTemperature',
          PublicServicesViews.publish_BasicDataService_MonitoringData_MeteorologicalMonitoringStation_WaterTemperature),
 
+    # 用于操作空间离散数据//SWMM空间离散
+    path('upLoad/SpatialDiscreteData/SWMMSpatialDiscreteData',
+         PublicServicesViews.upLoad_SpatialDiscreteData_SWMMSpatialDiscreteData),
+
+    path('creat/SpatialDiscreteData/SWMMSpatialDiscreteData/Table',
+         PublicServicesViews.creat_SpatialDiscreteData_SWMMSpatialDiscreteData_Table),
+
+    path('update/SpatialDiscreteData/SWMMSpatialDiscreteData/Table',
+         PublicServicesViews.update_SpatialDiscreteData_SWMMSpatialDiscreteData_Table),
+
+    path('publish/SpatialDiscreteData/SWMMSpatialDiscreteData',
+         PublicServicesViews.publish_SpatialDiscreteData_SWMMSpatialDiscreteData),
+
+    # 用于操作空间离散数据//EFDC空间离散
+    path('upLoad/SpatialDiscreteData/EFDCSpatialDiscreteData',
+         PublicServicesViews.upLoad_SpatialDiscreteData_EFDCSpatialDiscreteData),
+
+    path('creat/SpatialDiscreteData/EFDCSpatialDiscreteData/Table',
+         PublicServicesViews.creat_SpatialDiscreteData_EFDCSpatialDiscreteData_Table),
+
+    path('update/SpatialDiscreteData/EFDCSpatialDiscreteData/Table',
+         PublicServicesViews.update_SpatialDiscreteData_EFDCSpatialDiscreteData_Table),
+
+    path('publish/SpatialDiscreteData/EFDCSpatialDiscreteData',
+         PublicServicesViews.publish_SpatialDiscreteData_EFDCSpatialDiscreteData),
+
+    # 用于操作空间离散数据//MODFLOW空间离散
+    path('upLoad/SpatialDiscreteData/MODFLOWSpatialDiscreteData',
+         PublicServicesViews.upLoad_SpatialDiscreteData_MODFLOWSpatialDiscreteData),
+
+    path('creat/SpatialDiscreteData/MODFLOWSpatialDiscreteData/Table',
+         PublicServicesViews.creat_SpatialDiscreteData_MODFLOWSpatialDiscreteData_Table),
+
+    path('update/SpatialDiscreteData/MODFLOWSpatialDiscreteData/Table',
+         PublicServicesViews.update_SpatialDiscreteData_MODFLOWSpatialDiscreteData_Table),
+
+    path('publish/SpatialDiscreteData/MODFLOWSpatialDiscreteData',
+         PublicServicesViews.publish_SpatialDiscreteData_MODFLOWSpatialDiscreteData),
+
+    # 用于操作空间离散数据//SWMM-EFDC空间离散
+    path('upLoad/SpatialDiscreteData/SWMMandEFDCInteractiveUnit',
+         PublicServicesViews.upLoad_SpatialDiscreteData_SWMMandEFDCInteractiveUnit),
+
+    path('creat/SpatialDiscreteData/SWMMandEFDCInteractiveUnit/Table',
+         PublicServicesViews.creat_SpatialDiscreteData_SWMMandEFDCInteractiveUnit_Table),
+
+    path('update/SpatialDiscreteData/SWMMandEFDCInteractiveUnit/Table',
+         PublicServicesViews.update_SpatialDiscreteData_SWMMandEFDCInteractiveUnit_Table),
+
+    path('publish/SpatialDiscreteData/SWMMandEFDCInteractiveUnit',
+         PublicServicesViews.publish_SpatialDiscreteData_SWMMandEFDCInteractiveUnit),
+
+    # 用于操作空间离散数据//SWMM-MODFLOW空间离散
+    path('upLoad/SpatialDiscreteData/SWMMandMODFLOWInteractiveUnit',
+         PublicServicesViews.upLoad_SpatialDiscreteData_SWMMandMODFLOWInteractiveUnit),
+
+    path('creat/SpatialDiscreteData/SWMMandMODFLOWInteractiveUnit/Table',
+         PublicServicesViews.creat_SpatialDiscreteData_SWMMandMODFLOWInteractiveUnit_Table),
+
+    path('update/SpatialDiscreteData/SWMMandMODFLOWInteractiveUnit/Table',
+         PublicServicesViews.update_SpatialDiscreteData_SWMMandMODFLOWInteractiveUnit_Table),
+
+    path('publish/SpatialDiscreteData/SWMMandMODFLOWInteractiveUnit',
+         PublicServicesViews.publish_SpatialDiscreteData_SWMMandMODFLOWInteractiveUnit),
+
+    # 用于操作空间离散数据//EFDC-MODFLOW空间离散
+    path('upLoad/SpatialDiscreteData/EFDCandMODFLOWInteractiveUnit',
+         PublicServicesViews.upLoad_SpatialDiscreteData_EFDCandMODFLOWInteractiveUnit),
+
+    path('creat/SpatialDiscreteData/EFDCandMODFLOWInteractiveUnit/Table',
+         PublicServicesViews.creat_SpatialDiscreteData_EFDCandMODFLOWInteractiveUnit_Table),
+
+    path('update/SpatialDiscreteData/EFDCandMODFLOWInteractiveUnit/Table',
+         PublicServicesViews.update_SpatialDiscreteData_EFDCandMODFLOWInteractiveUnit_Table),
+
+    path('publish/SpatialDiscreteData/EFDCandMODFLOWInteractiveUnit',
+         PublicServicesViews.publish_SpatialDiscreteData_EFDCandMODFLOWInteractiveUnit),
+
     # 用于操作模型数据//MODFLOW//渗透（水力传导）
     path('upLoad/ModelData/MODFLOW/Infiltration',
          PublicServicesViews.upLoad_ModelData_MODFLOW_Infiltration),

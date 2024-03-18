@@ -38,7 +38,7 @@ def create_table_from_SpreadsheetFiles_data(body_data, path, shpName):
 
     # ==============================
     # 执行查询语句
-    cursor.execute(f"SELECT * FROM {table_name};")
+    cursor.execute(f"SELECT * FROM {table_name} ORDER BY fid;")
 
     # 获取查询结果的列名
     columns = [desc[0] for desc in cursor.description]
@@ -108,7 +108,7 @@ def create_table_from_shp_data(body_data, path, shpName):
 
     # ==============================
     # 执行查询语句
-    cursor.execute(f"SELECT * FROM {table_name};")
+    cursor.execute(f"SELECT * FROM {table_name} ORDER BY fid;")
 
     # 获取查询结果的列名
     columns = [desc[0] for desc in cursor.description]

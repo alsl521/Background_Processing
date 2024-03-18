@@ -78,8 +78,8 @@ DATABASES = {
         'NAME': 'ModelCoupledDatabase',
         'USER': 'postgres',
         'PASSWORD': 'postgresql',
-        'HOST': 'localhost',
-        'PORT': '5432',
+        'HOST': '223.2.45.130',
+        'PORT': '57906',
     }
 }
 
