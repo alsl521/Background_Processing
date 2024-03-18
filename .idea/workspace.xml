@@ -4,81 +4,7 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="f1b23a46-07d2-407d-9178-b054ccd31f11" name="更改" comment="基础数据服务\监测数据\气象监测站点数据上传完成">
-      <change afterPath="$PROJECT_DIR$/Data/Admin/SpatialDiscreteData/EFDCSpatialDiscreteData/EFDCSpatialDiscreteData.dbf" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Data/Admin/SpatialDiscreteData/EFDCSpatialDiscreteData/EFDCSpatialDiscreteData.prj" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Data/Admin/SpatialDiscreteData/EFDCSpatialDiscreteData/EFDCSpatialDiscreteData.sbn" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Data/Admin/SpatialDiscreteData/EFDCSpatialDiscreteData/EFDCSpatialDiscreteData.sbx" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Data/Admin/SpatialDiscreteData/EFDCSpatialDiscreteData/EFDCSpatialDiscreteData.shp" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Data/Admin/SpatialDiscreteData/EFDCSpatialDiscreteData/EFDCSpatialDiscreteData.shx" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Data/Admin/SpatialDiscreteData/EFDCandMODFLOWInteractiveUnit/EFDCandMODFLOWInteractiveUnit.CPG" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Data/Admin/SpatialDiscreteData/EFDCandMODFLOWInteractiveUnit/EFDCandMODFLOWInteractiveUnit.dbf" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Data/Admin/SpatialDiscreteData/EFDCandMODFLOWInteractiveUnit/EFDCandMODFLOWInteractiveUnit.prj" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Data/Admin/SpatialDiscreteData/EFDCandMODFLOWInteractiveUnit/EFDCandMODFLOWInteractiveUnit.sbn" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Data/Admin/SpatialDiscreteData/EFDCandMODFLOWInteractiveUnit/EFDCandMODFLOWInteractiveUnit.sbx" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Data/Admin/SpatialDiscreteData/EFDCandMODFLOWInteractiveUnit/EFDCandMODFLOWInteractiveUnit.shp" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Data/Admin/SpatialDiscreteData/EFDCandMODFLOWInteractiveUnit/EFDCandMODFLOWInteractiveUnit.shx" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Data/Admin/SpatialDiscreteData/EFDCandMODFLOWInteractiveUnit/EFDCandMODFLOWInteractiveUnit.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Data/Admin/SpatialDiscreteData/EFDCandMODFLOWSSpatialDiscreteData/EFDCandMODFLOWSSpatialDiscreteData.CPG" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Data/Admin/SpatialDiscreteData/EFDCandMODFLOWSSpatialDiscreteData/EFDCandMODFLOWSSpatialDiscreteData.dbf" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Data/Admin/SpatialDiscreteData/EFDCandMODFLOWSSpatialDiscreteData/EFDCandMODFLOWSSpatialDiscreteData.prj" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Data/Admin/SpatialDiscreteData/EFDCandMODFLOWSSpatialDiscreteData/EFDCandMODFLOWSSpatialDiscreteData.sbn" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Data/Admin/SpatialDiscreteData/EFDCandMODFLOWSSpatialDiscreteData/EFDCandMODFLOWSSpatialDiscreteData.sbx" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Data/Admin/SpatialDiscreteData/EFDCandMODFLOWSSpatialDiscreteData/EFDCandMODFLOWSSpatialDiscreteData.shp" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Data/Admin/SpatialDiscreteData/EFDCandMODFLOWSSpatialDiscreteData/EFDCandMODFLOWSSpatialDiscreteData.shx" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Data/Admin/SpatialDiscreteData/EFDCandMODFLOWSSpatialDiscreteData/EFDCandMODFLOWSSpatialDiscreteData.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Data/Admin/SpatialDiscreteData/MODFLOWSpatialDiscreteData/MODFLOWSpatialDiscreteData.dbf" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Data/Admin/SpatialDiscreteData/MODFLOWSpatialDiscreteData/MODFLOWSpatialDiscreteData.prj" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Data/Admin/SpatialDiscreteData/MODFLOWSpatialDiscreteData/MODFLOWSpatialDiscreteData.sbn" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Data/Admin/SpatialDiscreteData/MODFLOWSpatialDiscreteData/MODFLOWSpatialDiscreteData.sbx" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Data/Admin/SpatialDiscreteData/MODFLOWSpatialDiscreteData/MODFLOWSpatialDiscreteData.shp" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Data/Admin/SpatialDiscreteData/MODFLOWSpatialDiscreteData/MODFLOWSpatialDiscreteData.shx" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Data/Admin/SpatialDiscreteData/SWMMSpatialDiscreteData/SWMMSpatialDiscreteData.dbf" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Data/Admin/SpatialDiscreteData/SWMMSpatialDiscreteData/SWMMSpatialDiscreteData.prj" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Data/Admin/SpatialDiscreteData/SWMMSpatialDiscreteData/SWMMSpatialDiscreteData.sbn" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Data/Admin/SpatialDiscreteData/SWMMSpatialDiscreteData/SWMMSpatialDiscreteData.sbx" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Data/Admin/SpatialDiscreteData/SWMMSpatialDiscreteData/SWMMSpatialDiscreteData.shp" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Data/Admin/SpatialDiscreteData/SWMMSpatialDiscreteData/SWMMSpatialDiscreteData.shx" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Data/Admin/SpatialDiscreteData/SWMMSpatialDiscreteData/SWMMSpatialDiscreteData.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Data/Admin/SpatialDiscreteData/SWMMandEFDCInteractiveUnit/SWMMandEFDCInteractiveUnit.CPG" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Data/Admin/SpatialDiscreteData/SWMMandEFDCInteractiveUnit/SWMMandEFDCInteractiveUnit.dbf" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Data/Admin/SpatialDiscreteData/SWMMandEFDCInteractiveUnit/SWMMandEFDCInteractiveUnit.prj" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Data/Admin/SpatialDiscreteData/SWMMandEFDCInteractiveUnit/SWMMandEFDCInteractiveUnit.sbn" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Data/Admin/SpatialDiscreteData/SWMMandEFDCInteractiveUnit/SWMMandEFDCInteractiveUnit.sbx" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Data/Admin/SpatialDiscreteData/SWMMandEFDCInteractiveUnit/SWMMandEFDCInteractiveUnit.shp" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Data/Admin/SpatialDiscreteData/SWMMandEFDCInteractiveUnit/SWMMandEFDCInteractiveUnit.shx" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Data/Admin/SpatialDiscreteData/SWMMandEFDCInteractiveUnit/SWMMandEFDCInteractiveUnit.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Data/Admin/SpatialDiscreteData/SWMMandEFDCSpatialDiscreteData/SWMMandEFDCSpatialDiscreteData.CPG" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Data/Admin/SpatialDiscreteData/SWMMandEFDCSpatialDiscreteData/SWMMandEFDCSpatialDiscreteData.dbf" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Data/Admin/SpatialDiscreteData/SWMMandEFDCSpatialDiscreteData/SWMMandEFDCSpatialDiscreteData.prj" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Data/Admin/SpatialDiscreteData/SWMMandEFDCSpatialDiscreteData/SWMMandEFDCSpatialDiscreteData.sbn" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Data/Admin/SpatialDiscreteData/SWMMandEFDCSpatialDiscreteData/SWMMandEFDCSpatialDiscreteData.sbx" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Data/Admin/SpatialDiscreteData/SWMMandEFDCSpatialDiscreteData/SWMMandEFDCSpatialDiscreteData.shp" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Data/Admin/SpatialDiscreteData/SWMMandEFDCSpatialDiscreteData/SWMMandEFDCSpatialDiscreteData.shx" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Data/Admin/SpatialDiscreteData/SWMMandEFDCSpatialDiscreteData/SWMMandEFDCSpatialDiscreteData.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Data/Admin/SpatialDiscreteData/SWMMandMODFLOWInteractiveUnit/SWMMandMODFLOWInteractiveUnit.CPG" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Data/Admin/SpatialDiscreteData/SWMMandMODFLOWInteractiveUnit/SWMMandMODFLOWInteractiveUnit.dbf" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Data/Admin/SpatialDiscreteData/SWMMandMODFLOWInteractiveUnit/SWMMandMODFLOWInteractiveUnit.prj" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Data/Admin/SpatialDiscreteData/SWMMandMODFLOWInteractiveUnit/SWMMandMODFLOWInteractiveUnit.sbn" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Data/Admin/SpatialDiscreteData/SWMMandMODFLOWInteractiveUnit/SWMMandMODFLOWInteractiveUnit.sbx" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Data/Admin/SpatialDiscreteData/SWMMandMODFLOWInteractiveUnit/SWMMandMODFLOWInteractiveUnit.shp" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Data/Admin/SpatialDiscreteData/SWMMandMODFLOWInteractiveUnit/SWMMandMODFLOWInteractiveUnit.shx" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Data/Admin/SpatialDiscreteData/SWMMandMODFLOWInteractiveUnit/SWMMandMODFLOWInteractiveUnit.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Data/Admin/SpatialDiscreteData/SWMMandMODFLOWSSpatialDiscreteData/SWMMandMODFLOWSSpatialDiscreteData.CPG" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Data/Admin/SpatialDiscreteData/SWMMandMODFLOWSSpatialDiscreteData/SWMMandMODFLOWSSpatialDiscreteData.dbf" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Data/Admin/SpatialDiscreteData/SWMMandMODFLOWSSpatialDiscreteData/SWMMandMODFLOWSSpatialDiscreteData.prj" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Data/Admin/SpatialDiscreteData/SWMMandMODFLOWSSpatialDiscreteData/SWMMandMODFLOWSSpatialDiscreteData.sbn" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Data/Admin/SpatialDiscreteData/SWMMandMODFLOWSSpatialDiscreteData/SWMMandMODFLOWSSpatialDiscreteData.sbx" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Data/Admin/SpatialDiscreteData/SWMMandMODFLOWSSpatialDiscreteData/SWMMandMODFLOWSSpatialDiscreteData.shp" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Data/Admin/SpatialDiscreteData/SWMMandMODFLOWSSpatialDiscreteData/SWMMandMODFLOWSSpatialDiscreteData.shx" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Data/Admin/SpatialDiscreteData/SWMMandMODFLOWSSpatialDiscreteData/SWMMandMODFLOWSSpatialDiscreteData.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.gitignore" beforeDir="false" afterPath="$PROJECT_DIR$/.gitignore" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/DatabasContent/DatabaseTable.py" beforeDir="false" afterPath="$PROJECT_DIR$/DatabasContent/DatabaseTable.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/PublicServices/views.py" beforeDir="false" afterPath="$PROJECT_DIR$/PublicServices/views.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Web_Backend/settings.py" beforeDir="false" afterPath="$PROJECT_DIR$/Web_Backend/settings.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Web_Backend/urls.py" beforeDir="false" afterPath="$PROJECT_DIR$/Web_Backend/urls.py" afterDir="false" />
-    </list>
+    <list default="true" id="f1b23a46-07d2-407d-9178-b054ccd31f11" name="更改" comment="基础数据服务\监测数据\气象监测站点数据上传完成" />
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -196,7 +122,7 @@
       <workItem from="1709543213754" duration="42449000" />
       <workItem from="1710070378519" duration="15389000" />
       <workItem from="1710380472850" duration="13669000" />
-      <workItem from="1710723479311" duration="2575000" />
+      <workItem from="1710723479311" duration="3450000" />
     </task>
     <task id="LOCAL-00001" summary="基础数据服务\监测数据\气象监测站点数据上传完成">
       <option name="closed" value="true" />

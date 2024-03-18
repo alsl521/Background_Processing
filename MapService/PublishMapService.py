@@ -21,7 +21,7 @@ def publish_Shp(path, tablename):
     table_name = "Admin" + "_" + tablename
 
     # 将数据库中的数据发布到GeoServer
-    geo = Geoserver('http://localhost:8080/geoserver', username='admin',
+    geo = Geoserver('http://223.2.45.130:57910/geoserver', username='admin',
                     password='geoserver')  # Creating a Geoserver instance
     try:
         workspace = geo.get_workspace(workspace='ModelCoupling')
