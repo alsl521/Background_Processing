@@ -8,13 +8,13 @@
       <jdbc-url>jdbc:postgresql://localhost:5432/ModelCoupledDatabase</jdbc-url>
       <working-dir>$ProjectFileDir$</working-dir>
     </data-source>
-    <data-source source="LOCAL" name="Django default" uuid="09401fa7-992e-49f6-b184-bba11a9d542d">
+    <data-source source="LOCAL" name="Django default" uuid="b0faa26d-182b-4fbf-819c-1d499e24a495">
       <driver-ref>postgresql</driver-ref>
       <synchronize>true</synchronize>
       <imported>true</imported>
       <remarks>$PROJECT_DIR$/Web_Backend/settings.py</remarks>
       <jdbc-driver>org.postgresql.Driver</jdbc-driver>
-      <jdbc-url>jdbc:postgresql://127.0.0.1:5432/ModelCoupledDatabase</jdbc-url>
+      <jdbc-url>jdbc:postgresql://223.2.45.130:57906/ModelCoupledDatabase</jdbc-url>
       <working-dir>$ProjectFileDir$</working-dir>
     </data-source>
   </component>

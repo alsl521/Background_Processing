@@ -1,16 +1,1153 @@
+from dateutil import parser, tz
+import json
+
 from django.http import JsonResponse
 
+from Model.Run.run_file import run_swmm_modflow_efdc_model, validate_data
 # 自定义方法
 from Utils.Result import Result
-from DatabasContent.ShpToDatabaseTable import create_table_from_form, create_table_from_data
-from DatabasContent.DatabaseTable import update_table_from_form_shp, get_project_setting, update_project_setting
-from MapService.PublishMapService import publish_Shp
-from Utils.ProcessRequestBody import get_same_attributes_from_request_body, get_field_attributes_and_xlsx_attributes, \
-    get_field_attributes
+from DatabasContent.DatabaseTable import get_project_setting, get_modflow_time_from_table, \
+    get_all_upload_files_from_table, get_all_layers_from_table, modifyData
+from Utils.ProcessRequestBody import create_and_publish_shp_table_from_request, create_and_publish_from_request, \
+    create_and_publish_tif_request, create_and_publish_spreadsheet_request, get_total_time_from_table, set_time, \
+    get_data
 
 
-# region 基础数据服务//基础地理数据//研究区范围
-# 用于操作基础数据服务//基础地理数据//研究区范围
+# region 保留设计，按照快速开发原则，设计标准文件，只上传数据，然后入库发布。
+
+# # region 基础数据服务//基础地理数据//研究区范围
+# # 用于操作基础数据服务//基础地理数据//研究区范围
+# def upLoad_BasicDataService_BasicGeographicData_StudyAreaScope(request):
+#     if request.method == 'POST':
+#
+#         file_name = "BasicDataService_BasicGeographicData_StudyAreaScope"
+#         path = "BasicDataService\\BasicGeographicData\\StudyAreaScope"
+#         shpName = "StudyAreaScope"
+#
+#         # 获取字段属性
+#         field_attributes = get_field_attributes(request, file_name, path, shpName)
+#
+#         data = {'field_attributes': field_attributes}
+#         return JsonResponse(Result.success(data=data).to_dict())
+#     elif request.method == 'GET':
+#         shpName = "StudyAreaScope"
+#
+#         tableName = get_project_setting(shpName)
+#         # 获取默认数据
+#         data = {'url': "http://localhost:8080/geoserver/ModelCoupling/wms", 'name': tableName}
+#         return JsonResponse(Result.success(data=data).to_dict())
+#
+#
+# def creat_BasicDataService_BasicGeographicData_StudyAreaScope_Table(request):
+#     path = "BasicDataService\\BasicGeographicData\\StudyAreaScope"
+#     shpName = "StudyAreaScope"
+#     value = create_table_from_form(request.body, path, shpName)
+#     data = {'value': value}
+#     return JsonResponse(Result.success(data=data).to_dict())
+#
+#
+# def update_BasicDataService_BasicGeographicData_StudyAreaScope_Table(request):
+#     shpName = "StudyAreaScope"
+#     update_table_from_form_shp(request.body, shpName)
+#     return JsonResponse(Result.success().to_dict())
+#
+#
+# def publish_BasicDataService_BasicGeographicData_StudyAreaScope(request):
+#     path = "BasicDataService\\BasicGeographicData\\StudyAreaScope"
+#     shpName = "StudyAreaScope"
+#     tableName = publish_Shp(path, shpName)
+#     update_project_setting(shpName, 1)
+#     data = {'url': "http://localhost:8080/geoserver/ModelCoupling/wms", 'name': tableName}
+#     return JsonResponse(Result.success(data=data).to_dict())
+#
+#
+# # endregion
+#
+# # region 基础数据服务//监测数据//河流监测站点//流量
+# # 用于操作基础数据服务//监测数据//河流监测站点//流量
+# def upLoad_BasicDataService_MonitoringData_RiverMonitoringStation_FlowRate(request):
+#     if request.method == 'POST':
+#
+#         file_name = "BasicDataService_MonitoringData_RiverMonitoringStation_FlowRate"
+#         path = "BasicDataService\\MonitoringData\\RiverMonitoringStation\\FlowRate"
+#         shpName = "FlowRate"
+#
+#         field_attributes, xlsx_attributes = get_field_attributes_and_xlsx_attributes(request, file_name, path, shpName)
+#
+#         data = {'field_attributes': field_attributes, 'xlsx_attributes': xlsx_attributes}
+#         return JsonResponse(Result.success(data=data).to_dict())
+#     elif request.method == 'GET':
+#         shpName = "FlowRate"
+#
+#         tableName = get_project_setting(shpName)
+#         # 获取默认数据
+#         data = {'url': "http://localhost:8080/geoserver/ModelCoupling/wms", 'name': tableName}
+#         return JsonResponse(Result.success(data=data).to_dict())
+#
+#
+# def creat_BasicDataService_MonitoringData_RiverMonitoringStation_FlowRate_Table(request):
+#     path = "BasicDataService\\MonitoringData\\RiverMonitoringStation\\FlowRate"
+#     shpName = "FlowRate"
+#     shp_attributes_list, observation_attributes_list = get_same_attributes_from_request_body(request.body)
+#     shp_data, observation_data = create_table_from_data(shp_attributes_list, path, shpName,
+#                                                         observation_attributes_list)
+#     data = {'shp_data': shp_data, 'observation_data': observation_data}
+#     return JsonResponse(Result.success(data=data).to_dict())
+#
+#
+# def update_BasicDataService_MonitoringData_RiverMonitoringStation_FlowRate_Table(request):
+#     shpName = "FlowRate"
+#     update_table_from_form_shp(request.body, shpName)
+#     return JsonResponse(Result.success().to_dict())
+#
+#
+# def publish_BasicDataService_MonitoringData_RiverMonitoringStation_FlowRate(request):
+#     shpName = "FlowRate"
+#     path = "BasicDataService\\MonitoringData\\RiverMonitoringStation\\FlowRate"
+#     tableName = publish_Shp(path, shpName)
+#     update_project_setting(shpName, 2)
+#     data = {'url': "http://localhost:8080/geoserver/ModelCoupling/wms", 'name': tableName}
+#     return JsonResponse(Result.success(data=data).to_dict())
+#
+#
+# # endregion
+#
+# # region 基础数据服务//监测数据/气象监测站点//气温
+# # 用于操作基础数据服务//监测数据/气象监测站点//气温
+# def upLoad_BasicDataService_MonitoringData_MeteorologicalMonitoringStation_Temperature(request):
+#     if request.method == 'POST':
+#
+#         file_name = "BasicDataService_MonitoringData_MeteorologicalMonitoringStation_Temperature"
+#         path = "BasicDataService\\MonitoringData\\MeteorologicalMonitoringStation\\Temperature"
+#         shpName = "Temperature"
+#
+#         field_attributes, xlsx_attributes = get_field_attributes_and_xlsx_attributes(request, file_name, path, shpName)
+#
+#         data = {'field_attributes': field_attributes, 'xlsx_attributes': xlsx_attributes}
+#         return JsonResponse(Result.success(data=data).to_dict())
+#     elif request.method == 'GET':
+#         shpName = "Temperature"
+#
+#         tableName = get_project_setting(shpName)
+#         # 获取默认数据
+#         data = {'url': "http://localhost:8080/geoserver/ModelCoupling/wms", 'name': tableName}
+#         return JsonResponse(Result.success(data=data).to_dict())
+#
+#
+# def creat_BasicDataService_MonitoringData_MeteorologicalMonitoringStation_Temperature_Table(request):
+#     path = "BasicDataService\\MonitoringData\\MeteorologicalMonitoringStation\\Temperature"
+#     shpName = "Temperature"
+#     shp_attributes_list, observation_attributes_list = get_same_attributes_from_request_body(request.body)
+#     shp_data, observation_data = create_table_from_data(shp_attributes_list, path, shpName,
+#                                                         observation_attributes_list)
+#     data = {'shp_data': shp_data, 'observation_data': observation_data}
+#     return JsonResponse(Result.success(data=data).to_dict())
+#
+#
+# def update_BasicDataService_MonitoringData_MeteorologicalMonitoringStation_Temperature_Table(request):
+#     shpName = "Temperature"
+#     update_table_from_form_shp(request.body, shpName)
+#     return JsonResponse(Result.success().to_dict())
+#
+#
+# def publish_BasicDataService_MonitoringData_MeteorologicalMonitoringStation_Temperature(request):
+#     path = "BasicDataService\\MonitoringData\\MeteorologicalMonitoringStation\\Temperature"
+#     shpName = "Temperature"
+#     tableName = publish_Shp(path, shpName)
+#     update_project_setting(shpName, 2)
+#     data = {'url': "http://localhost:8080/geoserver/ModelCoupling/wms", 'name': tableName}
+#     return JsonResponse(Result.success(data=data).to_dict())
+#
+#
+# # endregion
+#
+# # region 基础数据服务//监测数据/气象监测站点//大气压强
+# # 用于操作基础数据服务//监测数据//气象监测站点//大气压强
+# def upLoad_BasicDataService_MonitoringData_MeteorologicalMonitoringStation_AtmosphericPressure(request):
+#     if request.method == 'POST':
+#
+#         file_name = "BasicDataService_MonitoringData_MeteorologicalMonitoringStation_AtmosphericPressure"
+#         path = "BasicDataService\\MonitoringData\\MeteorologicalMonitoringStation\\AtmosphericPressure"
+#         shpName = "AtmosphericPressure"
+#
+#         field_attributes, xlsx_attributes = get_field_attributes_and_xlsx_attributes(request, file_name, path, shpName)
+#
+#         data = {'field_attributes': field_attributes, 'xlsx_attributes': xlsx_attributes}
+#         return JsonResponse(Result.success(data=data).to_dict())
+#     elif request.method == 'GET':
+#         shpName = "AtmosphericPressure"
+#
+#         tableName = get_project_setting(shpName)
+#         # 获取默认数据
+#         data = {'url': "http://localhost:8080/geoserver/ModelCoupling/wms", 'name': tableName}
+#         return JsonResponse(Result.success(data=data).to_dict())
+#
+#
+# def creat_BasicDataService_MonitoringData_MeteorologicalMonitoringStation_AtmosphericPressure_Table(request):
+#     path = "BasicDataService\\MonitoringData\\MeteorologicalMonitoringStation\\AtmosphericPressure"
+#     shpName = "AtmosphericPressure"
+#     shp_attributes_list, observation_attributes_list = get_same_attributes_from_request_body(request.body)
+#     shp_data, observation_data = create_table_from_data(shp_attributes_list, path, shpName,
+#                                                         observation_attributes_list)
+#     data = {'shp_data': shp_data, 'observation_data': observation_data}
+#     return JsonResponse(Result.success(data=data).to_dict())
+#
+#
+# def update_BasicDataService_MonitoringData_MeteorologicalMonitoringStation_AtmosphericPressure_Table(request):
+#     shpName = "AtmosphericPressure"
+#     update_table_from_form_shp(request.body, shpName)
+#     return JsonResponse(Result.success().to_dict())
+#
+#
+# def publish_BasicDataService_MonitoringData_MeteorologicalMonitoringStation_AtmosphericPressure(request):
+#     path = "BasicDataService\\MonitoringData\\MeteorologicalMonitoringStation\\AtmosphericPressure"
+#     shpName = "AtmosphericPressure"
+#
+#     tableName = publish_Shp(path, shpName)
+#     update_project_setting(shpName, 2)
+#     data = {'url': "http://localhost:8080/geoserver/ModelCoupling/wms", 'name': tableName}
+#     return JsonResponse(Result.success(data=data).to_dict())
+#
+#
+# # endregion
+#
+# # region 基础数据服务//监测数据/气象监测站点//蒸发量
+# # 用于操作基础数据服务//监测数据//气象监测站点//蒸发量
+# def upLoad_BasicDataService_MonitoringData_MeteorologicalMonitoringStation_Evaporation(request):
+#     if request.method == 'POST':
+#
+#         file_name = "BasicDataService_MonitoringData_MeteorologicalMonitoringStation_Evaporation"
+#         path = "BasicDataService\\MonitoringData\\MeteorologicalMonitoringStation\\Evaporation"
+#         shpName = "Evaporation"
+#
+#         field_attributes, xlsx_attributes = get_field_attributes_and_xlsx_attributes(request, file_name, path, shpName)
+#
+#         data = {'field_attributes': field_attributes, 'xlsx_attributes': xlsx_attributes}
+#         return JsonResponse(Result.success(data=data).to_dict())
+#     elif request.method == 'GET':
+#         shpName = "Evaporation"
+#
+#         tableName = get_project_setting(shpName)
+#         # 获取默认数据
+#         data = {'url': "http://localhost:8080/geoserver/ModelCoupling/wms", 'name': tableName}
+#         return JsonResponse(Result.success(data=data).to_dict())
+#
+#
+# def creat_BasicDataService_MonitoringData_MeteorologicalMonitoringStation_Evaporation_Table(request):
+#     path = "BasicDataService\\MonitoringData\\MeteorologicalMonitoringStation\\Evaporation"
+#     shpName = "Evaporation"
+#     shp_attributes_list, observation_attributes_list = get_same_attributes_from_request_body(request.body)
+#     shp_data, observation_data = create_table_from_data(shp_attributes_list, path, shpName,
+#                                                         observation_attributes_list)
+#     data = {'shp_data': shp_data, 'observation_data': observation_data}
+#     return JsonResponse(Result.success(data=data).to_dict())
+#
+#
+# def update_BasicDataService_MonitoringData_MeteorologicalMonitoringStation_Evaporation_Table(request):
+#     shpName = "Evaporation"
+#     update_table_from_form_shp(request.body, shpName)
+#     return JsonResponse(Result.success().to_dict())
+#
+#
+# def publish_BasicDataService_MonitoringData_MeteorologicalMonitoringStation_Evaporation(request):
+#     path = "BasicDataService\\MonitoringData\\MeteorologicalMonitoringStation\\Evaporation"
+#     shpName = "Evaporation"
+#     tableName = publish_Shp(path, shpName)
+#     update_project_setting(shpName, 2)
+#     data = {'url': "http://localhost:8080/geoserver/ModelCoupling/wms", 'name': tableName}
+#     return JsonResponse(Result.success(data=data).to_dict())
+#
+#
+# # endregion
+#
+# # region 基础数据服务//监测数据/气象监测站点//降雨量
+# # 用于操作基础数据服务//监测数据//气象监测站点//降雨量
+# def upLoad_BasicDataService_MonitoringData_MeteorologicalMonitoringStation_Rainfall(request):
+#     if request.method == 'POST':
+#
+#         file_name = "BasicDataService_MonitoringData_MeteorologicalMonitoringStation_Rainfall"
+#         path = "BasicDataService\\MonitoringData\\MeteorologicalMonitoringStation\\Rainfall"
+#         shpName = "Rainfall"
+#
+#         field_attributes, xlsx_attributes = get_field_attributes_and_xlsx_attributes(request, file_name, path, shpName)
+#
+#         data = {'field_attributes': field_attributes, 'xlsx_attributes': xlsx_attributes}
+#         return JsonResponse(Result.success(data=data).to_dict())
+#     elif request.method == 'GET':
+#         shpName = "Rainfall"
+#
+#         tableName = get_project_setting(shpName)
+#         # 获取默认数据
+#         data = {'url': "http://localhost:8080/geoserver/ModelCoupling/wms", 'name': tableName}
+#         return JsonResponse(Result.success(data=data).to_dict())
+#
+#
+# def creat_BasicDataService_MonitoringData_MeteorologicalMonitoringStation_Rainfall_Table(request):
+#     path = "BasicDataService\\MonitoringData\\MeteorologicalMonitoringStation\\Rainfall"
+#     shpName = "Rainfall"
+#     shp_attributes_list, observation_attributes_list = get_same_attributes_from_request_body(request.body)
+#     shp_data, observation_data = create_table_from_data(shp_attributes_list, path, shpName,
+#                                                         observation_attributes_list)
+#     data = {'shp_data': shp_data, 'observation_data': observation_data}
+#     return JsonResponse(Result.success(data=data).to_dict())
+#
+#
+# def update_BasicDataService_MonitoringData_MeteorologicalMonitoringStation_Rainfall_Table(request):
+#     shpName = "Rainfall"
+#     update_table_from_form_shp(request.body, shpName)
+#     return JsonResponse(Result.success().to_dict())
+#
+#
+# def publish_BasicDataService_MonitoringData_MeteorologicalMonitoringStation_Rainfall(request):
+#     path = "BasicDataService\\MonitoringData\\MeteorologicalMonitoringStation\\Rainfall"
+#     shpName = "Rainfall"
+#     tableName = publish_Shp(path, shpName)
+#     update_project_setting(shpName, 2)
+#     data = {'url': "http://localhost:8080/geoserver/ModelCoupling/wms", 'name': tableName}
+#     return JsonResponse(Result.success(data=data).to_dict())
+#
+#
+# # endregion
+#
+# # region 基础数据服务//监测数据/气象监测站点//太阳辐射
+# # 用于操作基础数据服务//监测数据//气象监测站点//太阳辐射
+# def upLoad_BasicDataService_MonitoringData_MeteorologicalMonitoringStation_SolarRadiation(request):
+#     if request.method == 'POST':
+#
+#         file_name = "BasicDataService_MonitoringData_MeteorologicalMonitoringStation_SolarRadiation"
+#         path = "BasicDataService\\MonitoringData\\MeteorologicalMonitoringStation\\SolarRadiation"
+#         shpName = "SolarRadiation"
+#
+#         field_attributes, xlsx_attributes = get_field_attributes_and_xlsx_attributes(request, file_name, path, shpName)
+#
+#         data = {'field_attributes': field_attributes, 'xlsx_attributes': xlsx_attributes}
+#         return JsonResponse(Result.success(data=data).to_dict())
+#     elif request.method == 'GET':
+#         shpName = "SolarRadiation"
+#
+#         tableName = get_project_setting(shpName)
+#         # 获取默认数据
+#         data = {'url': "http://localhost:8080/geoserver/ModelCoupling/wms", 'name': tableName}
+#         return JsonResponse(Result.success(data=data).to_dict())
+#
+#
+# def creat_BasicDataService_MonitoringData_MeteorologicalMonitoringStation_SolarRadiation_Table(request):
+#     path = "BasicDataService\\MonitoringData\\MeteorologicalMonitoringStation\\SolarRadiation"
+#     shpName = "SolarRadiation"
+#     shp_attributes_list, observation_attributes_list = get_same_attributes_from_request_body(request.body)
+#     shp_data, observation_data = create_table_from_data(shp_attributes_list, path, shpName,
+#                                                         observation_attributes_list)
+#     data = {'shp_data': shp_data, 'observation_data': observation_data}
+#     return JsonResponse(Result.success(data=data).to_dict())
+#
+#
+# def update_BasicDataService_MonitoringData_MeteorologicalMonitoringStation_SolarRadiation_Table(request):
+#     shpName = "SolarRadiation"
+#     update_table_from_form_shp(request.body, shpName)
+#     return JsonResponse(Result.success().to_dict())
+#
+#
+# def publish_BasicDataService_MonitoringData_MeteorologicalMonitoringStation_SolarRadiation(request):
+#     path = "BasicDataService\\MonitoringData\\MeteorologicalMonitoringStation\\SolarRadiation"
+#     shpName = "SolarRadiation"
+#     tableName = publish_Shp(path, shpName)
+#     update_project_setting(shpName, 2)
+#     data = {'url': "http://localhost:8080/geoserver/ModelCoupling/wms", 'name': tableName}
+#     return JsonResponse(Result.success(data=data).to_dict())
+#
+#
+# # endregion
+#
+# # region 基础数据服务//监测数据/气象监测站点//云量
+# # 用于操作基础数据服务//监测数据//气象监测站点//云量
+# def upLoad_BasicDataService_MonitoringData_MeteorologicalMonitoringStation_CloudCover(request):
+#     if request.method == 'POST':
+#
+#         file_name = "BasicDataService_MonitoringData_MeteorologicalMonitoringStation_CloudCover"
+#         path = "BasicDataService\\MonitoringData\\MeteorologicalMonitoringStation\\CloudCover"
+#         shpName = "CloudCover"
+#
+#         field_attributes, xlsx_attributes = get_field_attributes_and_xlsx_attributes(request, file_name, path, shpName)
+#
+#         data = {'field_attributes': field_attributes, 'xlsx_attributes': xlsx_attributes}
+#         return JsonResponse(Result.success(data=data).to_dict())
+#     elif request.method == 'GET':
+#         shpName = "CloudCover"
+#
+#         tableName = get_project_setting(shpName)
+#         # 获取默认数据
+#         data = {'url': "http://localhost:8080/geoserver/ModelCoupling/wms", 'name': tableName}
+#         return JsonResponse(Result.success(data=data).to_dict())
+#
+#
+# def creat_BasicDataService_MonitoringData_MeteorologicalMonitoringStation_CloudCover_Table(request):
+#     path = "BasicDataService\\MonitoringData\\MeteorologicalMonitoringStation\\CloudCover"
+#     shpName = "CloudCover"
+#     shp_attributes_list, observation_attributes_list = get_same_attributes_from_request_body(request.body)
+#     shp_data, observation_data = create_table_from_data(shp_attributes_list, path, shpName,
+#                                                         observation_attributes_list)
+#     data = {'shp_data': shp_data, 'observation_data': observation_data}
+#     return JsonResponse(Result.success(data=data).to_dict())
+#
+#
+# def update_BasicDataService_MonitoringData_MeteorologicalMonitoringStation_CloudCover_Table(request):
+#     shpName = "CloudCover"
+#     update_table_from_form_shp(request.body, shpName)
+#     return JsonResponse(Result.success().to_dict())
+#
+#
+# def publish_BasicDataService_MonitoringData_MeteorologicalMonitoringStation_CloudCover(request):
+#     path = "BasicDataService\\MonitoringData\\MeteorologicalMonitoringStation\\CloudCover"
+#     shpName = "CloudCover"
+#     tableName = publish_Shp(path, shpName)
+#     update_project_setting(shpName, 2)
+#     data = {'url': "http://localhost:8080/geoserver/ModelCoupling/wms", 'name': tableName}
+#     return JsonResponse(Result.success(data=data).to_dict())
+#
+#
+# # endregion
+#
+# # region 基础数据服务//监测数据/气象监测站点//风速风向
+# # 用于操作基础数据服务//监测数据//气象监测站点//风速风向
+# def upLoad_BasicDataService_MonitoringData_MeteorologicalMonitoringStation_WindSpeedAndDirection(request):
+#     if request.method == 'POST':
+#
+#         file_name = "BasicDataService_MonitoringData_MeteorologicalMonitoringStation_WindSpeedAndDirection"
+#         path = "BasicDataService\\MonitoringData\\MeteorologicalMonitoringStation\\WindSpeedAndDirection"
+#         shpName = "WindSpeedAndDirection"
+#
+#         field_attributes, xlsx_attributes = get_field_attributes_and_xlsx_attributes(request, file_name, path, shpName)
+#
+#         data = {'field_attributes': field_attributes, 'xlsx_attributes': xlsx_attributes}
+#         return JsonResponse(Result.success(data=data).to_dict())
+#     elif request.method == 'GET':
+#         shpName = "WindSpeedAndDirection"
+#
+#         tableName = get_project_setting(shpName)
+#         # 获取默认数据
+#         data = {'url': "http://localhost:8080/geoserver/ModelCoupling/wms", 'name': tableName}
+#         return JsonResponse(Result.success(data=data).to_dict())
+#
+#
+# def creat_BasicDataService_MonitoringData_MeteorologicalMonitoringStation_WindSpeedAndDirection_Table(request):
+#     path = "BasicDataService\\MonitoringData\\MeteorologicalMonitoringStation\\WindSpeedAndDirection"
+#     shpName = "WindSpeedAndDirection"
+#     shp_attributes_list, observation_attributes_list = get_same_attributes_from_request_body(request.body)
+#     shp_data, observation_data = create_table_from_data(shp_attributes_list, path, shpName,
+#                                                         observation_attributes_list)
+#     data = {'shp_data': shp_data, 'observation_data': observation_data}
+#     return JsonResponse(Result.success(data=data).to_dict())
+#
+#
+# def update_BasicDataService_MonitoringData_MeteorologicalMonitoringStation_WindSpeedAndDirection_Table(request):
+#     shpName = "WindSpeedAndDirection"
+#     update_table_from_form_shp(request.body, shpName)
+#     return JsonResponse(Result.success().to_dict())
+#
+#
+# def publish_BasicDataService_MonitoringData_MeteorologicalMonitoringStation_WindSpeedAndDirection(request):
+#     path = "BasicDataService\\MonitoringData\\MeteorologicalMonitoringStation\\WindSpeedAndDirection"
+#     shpName = "WindSpeedAndDirection"
+#     tableName = publish_Shp(path, shpName)
+#     update_project_setting(shpName, 2)
+#     data = {'url': "http://localhost:8080/geoserver/ModelCoupling/wms", 'name': tableName}
+#     return JsonResponse(Result.success(data=data).to_dict())
+#
+#
+# # endregion
+#
+# # region 基础数据服务//监测数据/气象监测站点//水温
+# # 用于操作基础数据服务//监测数据/气象监测站点//水温
+# def upLoad_BasicDataService_MonitoringData_MeteorologicalMonitoringStation_WaterTemperature(request):
+#     if request.method == 'POST':
+#
+#         file_name = "BasicDataService_MonitoringData_MeteorologicalMonitoringStation_WaterTemperature"
+#         path = "BasicDataService\\MonitoringData\\MeteorologicalMonitoringStation\\WaterTemperature"
+#         shpName = "WaterTemperature"
+#
+#         field_attributes, xlsx_attributes = get_field_attributes_and_xlsx_attributes(request, file_name, path, shpName)
+#
+#         data = {'field_attributes': field_attributes, 'xlsx_attributes': xlsx_attributes}
+#         return JsonResponse(Result.success(data=data).to_dict())
+#     elif request.method == 'GET':
+#         shpName = "WaterTemperature"
+#
+#         tableName = get_project_setting(shpName)
+#         # 获取默认数据
+#         data = {'url': "http://localhost:8080/geoserver/ModelCoupling/wms", 'name': tableName}
+#         return JsonResponse(Result.success(data=data).to_dict())
+#
+#
+# def creat_BasicDataService_MonitoringData_MeteorologicalMonitoringStation_WaterTemperature_Table(request):
+#     path = "BasicDataService\\MonitoringData\\MeteorologicalMonitoringStation\\WaterTemperature"
+#     shpName = "WaterTemperature"
+#     shp_attributes_list, observation_attributes_list = get_same_attributes_from_request_body(request.body)
+#     shp_data, observation_data = create_table_from_data(shp_attributes_list, path, shpName,
+#                                                         observation_attributes_list)
+#     data = {'shp_data': shp_data, 'observation_data': observation_data}
+#     return JsonResponse(Result.success(data=data).to_dict())
+#
+#
+# def update_BasicDataService_MonitoringData_MeteorologicalMonitoringStation_WaterTemperature_Table(request):
+#     shpName = "WaterTemperature"
+#     update_table_from_form_shp(request.body, shpName)
+#     return JsonResponse(Result.success().to_dict())
+#
+#
+# def publish_BasicDataService_MonitoringData_MeteorologicalMonitoringStation_WaterTemperature(request):
+#     path = "BasicDataService\\MonitoringData\\MeteorologicalMonitoringStation\\WaterTemperature"
+#     shpName = "WaterTemperature"
+#     tableName = publish_Shp(path, shpName)
+#     update_project_setting(shpName, 2)
+#     data = {'url': "http://localhost:8080/geoserver/ModelCoupling/wms", 'name': tableName}
+#     return JsonResponse(Result.success(data=data).to_dict())
+#
+#
+# # endregion
+#
+# # region 空间离散数据//SWMM空间离散
+# # 用于操作空间离散数据//SWMM空间离散
+# def upLoad_SpatialDiscreteData_SWMMSpatialDiscreteData(request):
+#     if request.method == 'POST':
+#         file_name = "SpatialDiscreteData_SWMMSpatialDiscreteData"
+#         path = "SpatialDiscreteData\\SWMMSpatialDiscreteData"
+#         shpName = "SWMMSpatialDiscreteData"
+#
+#         # 获取字段属性
+#         field_attributes = get_field_attributes(request, file_name, path, shpName)
+#
+#         data = {'field_attributes': field_attributes}
+#         return JsonResponse(Result.success(data=data).to_dict())
+#
+#
+# def creat_SpatialDiscreteData_SWMMSpatialDiscreteData_Table(request):
+#     path = "SpatialDiscreteData\\SWMMSpatialDiscreteData"
+#     shpName = "SWMMSpatialDiscreteData"
+#     value = create_table_from_form(request.body, path, shpName)
+#     data = {'value': value}
+#     return JsonResponse(Result.success(data=data).to_dict())
+#
+#
+# def update_SpatialDiscreteData_SWMMSpatialDiscreteData_Table(request):
+#     shpName = "SWMMSpatialDiscreteData"
+#     update_table_from_form_shp(request.body, shpName)
+#     return JsonResponse(Result.success().to_dict())
+#
+#
+# def publish_SpatialDiscreteData_SWMMSpatialDiscreteData(request):
+#     path = "SpatialDiscreteData\\SWMMSpatialDiscreteData"
+#     shpName = "SWMMSpatialDiscreteData"
+#     tableName = publish_Shp(path, shpName)
+#     update_project_setting(shpName, 1)
+#     data = {'url': "http://localhost:8080/geoserver/ModelCoupling/wms", 'name': tableName}
+#     return JsonResponse(Result.success(data=data).to_dict())
+#
+#
+# # endregion
+#
+# # region 空间离散数据//EFDC空间离散
+# # 用于操作空间离散数据//EFDC空间离散
+# def upLoad_SpatialDiscreteData_EFDCSpatialDiscreteData(request):
+#     if request.method == 'POST':
+#         file_name = "SpatialDiscreteData_EFDCSpatialDiscreteData"
+#         path = "SpatialDiscreteData\\EFDCSpatialDiscreteData"
+#         shpName = "EFDCSpatialDiscreteData"
+#
+#         # 获取字段属性
+#         field_attributes = get_field_attributes(request, file_name, path, shpName)
+#
+#         data = {'field_attributes': field_attributes}
+#         return JsonResponse(Result.success(data=data).to_dict())
+#
+#
+# def creat_SpatialDiscreteData_EFDCSpatialDiscreteData_Table(request):
+#     path = "SpatialDiscreteData\\EFDCSpatialDiscreteData"
+#     shpName = "EFDCSpatialDiscreteData"
+#     value = create_table_from_form(request.body, path, shpName)
+#     data = {'value': value}
+#     return JsonResponse(Result.success(data=data).to_dict())
+#
+#
+# def update_SpatialDiscreteData_EFDCSpatialDiscreteData_Table(request):
+#     shpName = "EFDCSpatialDiscreteData"
+#     update_table_from_form_shp(request.body, shpName)
+#     return JsonResponse(Result.success().to_dict())
+#
+#
+# def publish_SpatialDiscreteData_EFDCSpatialDiscreteData(request):
+#     path = "SpatialDiscreteData\\EFDCSpatialDiscreteData"
+#     shpName = "EFDCSpatialDiscreteData"
+#     tableName = publish_Shp(path, shpName)
+#     update_project_setting(shpName, 1)
+#     data = {'url': "http://localhost:8080/geoserver/ModelCoupling/wms", 'name': tableName}
+#     return JsonResponse(Result.success(data=data).to_dict())
+#
+#
+# # endregion
+#
+# # region 空间离散数据//MODFLOW空间离散
+# # 用于操作空间离散数据//MODFLOW空间离散
+# def upLoad_SpatialDiscreteData_MODFLOWSpatialDiscreteData(request):
+#     if request.method == 'POST':
+#         file_name = "SpatialDiscreteData_MODFLOWSpatialDiscreteData"
+#         path = "SpatialDiscreteData\\MODFLOWSpatialDiscreteData"
+#         shpName = "MODFLOWSpatialDiscreteData"
+#
+#         # 获取字段属性
+#         field_attributes = get_field_attributes(request, file_name, path, shpName)
+#
+#         data = {'field_attributes': field_attributes}
+#         return JsonResponse(Result.success(data=data).to_dict())
+#
+#
+# def creat_SpatialDiscreteData_MODFLOWSpatialDiscreteData_Table(request):
+#     path = "SpatialDiscreteData\\MODFLOWSpatialDiscreteData"
+#     shpName = "MODFLOWSpatialDiscreteData"
+#     value = create_table_from_form(request.body, path, shpName)
+#     data = {'value': value}
+#     return JsonResponse(Result.success(data=data).to_dict())
+#
+#
+# def update_SpatialDiscreteData_MODFLOWSpatialDiscreteData_Table(request):
+#     shpName = "MODFLOWSpatialDiscreteData"
+#     update_table_from_form_shp(request.body, shpName)
+#     return JsonResponse(Result.success().to_dict())
+#
+#
+# def publish_SpatialDiscreteData_MODFLOWSpatialDiscreteData(request):
+#     path = "SpatialDiscreteData\\MODFLOWSpatialDiscreteData"
+#     shpName = "MODFLOWSpatialDiscreteData"
+#     tableName = publish_Shp(path, shpName)
+#     update_project_setting(shpName, 1)
+#     data = {'url': "http://localhost:8080/geoserver/ModelCoupling/wms", 'name': tableName}
+#     return JsonResponse(Result.success(data=data).to_dict())
+#
+#
+# # endregion
+#
+# # region 空间离散数据//SWMM-EFDC交互单元
+# # 用于操作空间离散数据//SWMM-EFDC交互单元
+# def upLoad_SpatialDiscreteData_SWMMandEFDCInteractiveUnit(request):
+#     if request.method == 'POST':
+#         file_name = "SpatialDiscreteData_SWMMandEFDCInteractiveUnit"
+#         path = "SpatialDiscreteData\\SWMMandEFDCInteractiveUnit"
+#         shpName = "SWMMandEFDCInteractiveUnit"
+#
+#         # 获取字段属性
+#         field_attributes = get_field_attributes(request, file_name, path, shpName)
+#
+#         data = {'field_attributes': field_attributes}
+#         return JsonResponse(Result.success(data=data).to_dict())
+#
+#
+# def creat_SpatialDiscreteData_SWMMandEFDCInteractiveUnit_Table(request):
+#     path = "SpatialDiscreteData\\SWMMandEFDCInteractiveUnit"
+#     shpName = "SWMMandEFDCInteractiveUnit"
+#     value = create_table_from_form(request.body, path, shpName)
+#     data = {'value': value}
+#     return JsonResponse(Result.success(data=data).to_dict())
+#
+#
+# def update_SpatialDiscreteData_SWMMandEFDCInteractiveUnit_Table(request):
+#     shpName = "SWMMandEFDCInteractiveUnit"
+#     update_table_from_form_shp(request.body, shpName)
+#     return JsonResponse(Result.success().to_dict())
+#
+#
+# def publish_SpatialDiscreteData_SWMMandEFDCInteractiveUnit(request):
+#     path = "SpatialDiscreteData\\SWMMandEFDCInteractiveUnit"
+#     shpName = "SWMMandEFDCInteractiveUnit"
+#     tableName = publish_Shp(path, shpName)
+#     update_project_setting(shpName, 1)
+#     data = {'url': "http://localhost:8080/geoserver/ModelCoupling/wms", 'name': tableName}
+#     return JsonResponse(Result.success(data=data).to_dict())
+#
+#
+# # endregion
+#
+# # region 空间离散数据//SWMM-MODFLOW交互单元
+# # 用于操作空间离散数据//SWMM-MODFLOW交互单元
+# def upLoad_SpatialDiscreteData_SWMMandMODFLOWInteractiveUnit(request):
+#     if request.method == 'POST':
+#         file_name = "SpatialDiscreteData_SWMMandMODFLOWInteractiveUnit"
+#         path = "SpatialDiscreteData\\SWMMandMODFLOWInteractiveUnit"
+#         shpName = "SWMMandMODFLOWInteractiveUnit"
+#
+#         # 获取字段属性
+#         field_attributes = get_field_attributes(request, file_name, path, shpName)
+#
+#         data = {'field_attributes': field_attributes}
+#         return JsonResponse(Result.success(data=data).to_dict())
+#
+#
+# def creat_SpatialDiscreteData_SWMMandMODFLOWInteractiveUnit_Table(request):
+#     path = "SpatialDiscreteData\\SWMMandMODFLOWInteractiveUnit"
+#     shpName = "SWMMandMODFLOWInteractiveUnit"
+#     value = create_table_from_form(request.body, path, shpName)
+#     data = {'value': value}
+#     return JsonResponse(Result.success(data=data).to_dict())
+#
+#
+# def update_SpatialDiscreteData_SWMMandMODFLOWInteractiveUnit_Table(request):
+#     shpName = "SWMMandMODFLOWInteractiveUnit"
+#     update_table_from_form_shp(request.body, shpName)
+#     return JsonResponse(Result.success().to_dict())
+#
+#
+# def publish_SpatialDiscreteData_SWMMandMODFLOWInteractiveUnit(request):
+#     path = "SpatialDiscreteData\\SWMMandMODFLOWInteractiveUnit"
+#     shpName = "SWMMandMODFLOWInteractiveUnit"
+#     tableName = publish_Shp(path, shpName)
+#     update_project_setting(shpName, 1)
+#     data = {'url': "http://localhost:8080/geoserver/ModelCoupling/wms", 'name': tableName}
+#     return JsonResponse(Result.success(data=data).to_dict())
+#
+#
+# # endregion
+#
+# # region 空间离散数据//EFDC-MODFLOW交互单元
+# # 用于操作空间离散数据//EFDC-MODFLOW交互单元
+# def upLoad_SpatialDiscreteData_EFDCandMODFLOWInteractiveUnit(request):
+#     if request.method == 'POST':
+#         file_name = "SpatialDiscreteData_EFDCandMODFLOWInteractiveUnit"
+#         path = "SpatialDiscreteData\\EFDCandMODFLOWInteractiveUnit"
+#         shpName = "EFDCandMODFLOWInteractiveUnit"
+#
+#         # 获取字段属性
+#         field_attributes = get_field_attributes(request, file_name, path, shpName)
+#
+#         data = {'field_attributes': field_attributes}
+#         return JsonResponse(Result.success(data=data).to_dict())
+#
+#
+# def creat_SpatialDiscreteData_EFDCandMODFLOWInteractiveUnit_Table(request):
+#     path = "SpatialDiscreteData\\EFDCandMODFLOWInteractiveUnit"
+#     shpName = "EFDCandMODFLOWInteractiveUnit"
+#     value = create_table_from_form(request.body, path, shpName)
+#     data = {'value': value}
+#     return JsonResponse(Result.success(data=data).to_dict())
+#
+#
+# def update_SpatialDiscreteData_EFDCandMODFLOWInteractiveUnit_Table(request):
+#     shpName = "EFDCandMODFLOWInteractiveUnit"
+#     update_table_from_form_shp(request.body, shpName)
+#     return JsonResponse(Result.success().to_dict())
+#
+#
+# def publish_SpatialDiscreteData_EFDCandMODFLOWInteractiveUnit(request):
+#     path = "SpatialDiscreteData\\EFDCandMODFLOWInteractiveUnit"
+#     shpName = "EFDCandMODFLOWInteractiveUnit"
+#     tableName = publish_Shp(path, shpName)
+#     update_project_setting(shpName, 1)
+#     data = {'url': "http://localhost:8080/geoserver/ModelCoupling/wms", 'name': tableName}
+#     return JsonResponse(Result.success(data=data).to_dict())
+#
+#
+# # endregion
+#
+#
+# # region 模型数据//SWMM//空间离散//雨量计数据
+# # 用于操作空模型数据//SWMM//空间离散/雨量计数据
+# def upLoad_ModelData_SWMM_SpatialDiscrete_RainGauge(request):
+#     if request.method == 'POST':
+#         file_name = "ModelData_SWMM_SpatialDiscrete_RainGauge"
+#         path = "ModelData\\SWMM\\SpatialDiscrete\\RainGauge"
+#         shpName = "RainGauge"
+#
+#         # 获取字段属性
+#         field_attributes = get_field_attributes(request, file_name, path, shpName)
+#
+#         data = {'field_attributes': field_attributes}
+#         return JsonResponse(Result.success(data=data).to_dict())
+#
+#
+# def creat_ModelData_SWMM_SpatialDiscrete_RainGauge_Table(request):
+#     path = "ModelData\\SWMM\\SpatialDiscrete\\RainGauge"
+#     shpName = "RainGauge"
+#     value = create_table_from_form(request.body, path, shpName)
+#     data = {'value': value}
+#     return JsonResponse(Result.success(data=data).to_dict())
+#
+#
+# def update_ModelData_SWMM_SpatialDiscrete_RainGauge_Table(request):
+#     shpName = "RainGauge"
+#     update_table_from_form_shp(request.body, shpName)
+#     return JsonResponse(Result.success().to_dict())
+#
+#
+# def publish_ModelData_SWMM_SpatialDiscrete_RainGauge(request):
+#     path = "ModelData\\SWMM\\SpatialDiscrete\\RainGauge"
+#     shpName = "RainGauge"
+#     tableName = publish_Shp(path, shpName)
+#     update_project_setting(shpName, 1)
+#     data = {'url': "http://localhost:8080/geoserver/ModelCoupling/wms", 'name': tableName}
+#     return JsonResponse(Result.success(data=data).to_dict())
+#
+#
+# # endregion
+#
+# # region 模型数据//SWMM//空间离散//铰点数据
+# # 用于操作空模型数据//SWMM//空间离散//铰点数据
+# def upLoad_ModelData_SWMM_SpatialDiscrete_Junction(request):
+#     if request.method == 'POST':
+#         file_name = "ModelData_SWMM_SpatialDiscrete_Junction"
+#         path = "ModelData\\SWMM\\SpatialDiscrete\\Junction"
+#         shpName = "Junction"
+#
+#         # 获取字段属性
+#         field_attributes = get_field_attributes(request, file_name, path, shpName)
+#
+#         data = {'field_attributes': field_attributes}
+#         return JsonResponse(Result.success(data=data).to_dict())
+#
+#
+# def creat_ModelData_SWMM_SpatialDiscrete_Junction_Table(request):
+#     path = "ModelData\\SWMM\\SpatialDiscrete\\Junction"
+#     shpName = "Junction"
+#     value = create_table_from_form(request.body, path, shpName)
+#     data = {'value': value}
+#     return JsonResponse(Result.success(data=data).to_dict())
+#
+#
+# def update_ModelData_SWMM_SpatialDiscrete_Junction_Table(request):
+#     shpName = "Junction"
+#     update_table_from_form_shp(request.body, shpName)
+#     return JsonResponse(Result.success().to_dict())
+#
+#
+# def publish_ModelData_SWMM_SpatialDiscrete_Junction(request):
+#     path = "ModelData\\SWMM\\SpatialDiscrete\\Junction"
+#     shpName = "Junction"
+#     tableName = publish_Shp(path, shpName)
+#     update_project_setting(shpName, 1)
+#     data = {'url': "http://localhost:8080/geoserver/ModelCoupling/wms", 'name': tableName}
+#     return JsonResponse(Result.success(data=data).to_dict())
+#
+#
+# # endregion
+#
+# def update_ModelData_SWMM_TimeDispersion(request):
+#     print("SS")
+#
+#
+# # region 模型数据//SWMM//参数设置//HRU参数
+# # 用于操作空模型数据//SWMM//参数设置/HRU参数
+# def upLoad_ModelData_SWMM_ParameterSetting_HRU(request):
+#     if request.method == 'POST':
+#         file_name = "ModelData_SWMM_ParameterSetting_HRU"
+#         path = "ModelData\\SWMM\\ParameterSetting\\HRU"
+#         shpName = "HRU"
+#
+#         # 获取字段属性
+#         field_attributes = get_field_attributes(request, file_name, path, shpName)
+#
+#         data = {'field_attributes': field_attributes}
+#         return JsonResponse(Result.success(data=data).to_dict())
+#
+#
+# def creat_ModelData_SWMM_ParameterSetting_HRU_Table(request):
+#     path = "ModelData\\SWMM\\ParameterSetting\\HRU"
+#     shpName = "HRU"
+#     value = create_table_from_form(request.body, path, shpName)
+#     data = {'value': value}
+#     return JsonResponse(Result.success(data=data).to_dict())
+#
+#
+# def update_ModelData_SWMM_ParameterSetting_HRU_Table(request):
+#     shpName = "HRU"
+#     update_table_from_form_shp(request.body, shpName)
+#     return JsonResponse(Result.success().to_dict())
+#
+#
+# def publish_ModelData_SWMM_ParameterSetting_HRU(request):
+#     path = "ModelData\\SWMM\\ParameterSetting\\HRU"
+#     shpName = "HRU"
+#     tableName = publish_Shp(path, shpName)
+#     update_project_setting(shpName, 1)
+#     data = {'url': "http://localhost:8080/geoserver/ModelCoupling/wms", 'name': tableName}
+#     return JsonResponse(Result.success(data=data).to_dict())
+#
+#
+# # endregion
+#
+# # region 模型数据//SWMM//参数设置//雨量计参数
+# # 用于操作空模型数据//SWMM//参数设置//雨量计参数
+# def upLoad_ModelData_SWMM_ParameterSetting_RainGauge(request):
+#     if request.method == 'POST':
+#         file_name = "ModelData_SWMM_ParameterSetting_RainGauge"
+#         path = "ModelData\\SWMM\\ParameterSetting\\RainGauge"
+#         shpName = "RainGauge"
+#
+#         # 获取字段属性
+#         field_attributes = get_field_attributes(request, file_name, path, shpName)
+#
+#         data = {'field_attributes': field_attributes}
+#         return JsonResponse(Result.success(data=data).to_dict())
+#
+#
+# def creat_ModelData_SWMM_ParameterSetting_RainGauge_Table(request):
+#     path = "ModelData\\SWMM\\ParameterSetting\\RainGauge"
+#     shpName = "RainGauge"
+#     value = create_table_from_form(request.body, path, shpName)
+#     data = {'value': value}
+#     return JsonResponse(Result.success(data=data).to_dict())
+#
+#
+# def update_ModelData_SWMM_ParameterSetting_RainGauge_Table(request):
+#     shpName = "RainGauge"
+#     update_table_from_form_shp(request.body, shpName)
+#     return JsonResponse(Result.success().to_dict())
+#
+#
+# def publish_ModelData_SWMM_ParameterSetting_RainGauge(request):
+#     path = "ModelData\\SWMM\\ParameterSetting\\RainGauge"
+#     shpName = "RainGauge"
+#     tableName = publish_Shp(path, shpName)
+#     update_project_setting(shpName, 1)
+#     data = {'url': "http://localhost:8080/geoserver/ModelCoupling/wms", 'name': tableName}
+#     return JsonResponse(Result.success(data=data).to_dict())
+#
+#
+# # endregion
+#
+# # region 模型数据//SWMM//参数设置//节点参数
+# # 用于操作空模型数据//SWMM//参数设置//节点参数
+# def upLoad_ModelData_SWMM_ParameterSetting_Junction(request):
+#     if request.method == 'POST':
+#         file_name = "ModelData_SWMM_ParameterSetting_Junction"
+#         path = "ModelData//SWMM//ParameterSetting//Junction"
+#         shpName = "Junction"
+#
+#         # 获取字段属性
+#         field_attributes = get_field_attributes(request, file_name, path, shpName)
+#
+#         data = {'field_attributes': field_attributes}
+#         return JsonResponse(Result.success(data=data).to_dict())
+#
+#
+# def creat_ModelData_SWMM_ParameterSetting_Junction_Table(request):
+#     path = "ModelData//SWMM//ParameterSetting//Junction"
+#     shpName = "Junction"
+#     value = create_table_from_form(request.body, path, shpName)
+#     data = {'value': value}
+#     return JsonResponse(Result.success(data=data).to_dict())
+#
+#
+# def update_ModelData_SWMM_ParameterSetting_PointFile_Junction_Table(request):
+#     shpName = "EFDCandMODFLOWSSpatialDiscreteData"
+#     update_table_from_form_shp(request.body, shpName)
+#     return JsonResponse(Result.success().to_dict())
+#
+#
+# def publish_ModelData_SWMM_ParameterSetting_JunctionJunction(request):
+#     path = "ModelData//SWMM//ParameterSetting//Junction"
+#     shpName = "Junction"
+#     tableName = publish_Shp(path, shpName)
+#     update_project_setting(shpName, 1)
+#     data = {'url': "http://localhost:8080/geoserver/ModelCoupling/wms", 'name': tableName}
+#     return JsonResponse(Result.success(data=data).to_dict())
+#
+#
+# # endregion
+#
+#
+# # 用于操作模型数据//MODFLOW//渗透（水力传导）
+# def upLoad_ModelData_MODFLOW_Infiltration(request):
+#     if request.method == 'POST':
+#
+#         file_name = "ModelData_MODFLOW_Infiltration"
+#         path = "ModelData\\MODFLOW\\Infiltration"
+#         shpName = "Infiltration"
+#
+#         # 获取字段属性
+#         field_attributes = get_field_attributes(request, file_name, path, shpName)
+#
+#         data = {'field_attributes': field_attributes}
+#         return JsonResponse(Result.success(data=data).to_dict())
+#     elif request.method == 'GET':
+#         shpName = "Infiltration"
+#
+#         tableName = get_project_setting(shpName)
+#         # 获取默认数据
+#         data = {'url': "http://localhost:8080/geoserver/ModelCoupling/wms", 'name': tableName}
+#         return JsonResponse(Result.success(data=data).to_dict())
+#
+#
+# def creat_ModelData_MODFLOW_Infiltration_Table(request):
+#     path = "ModelData\\MODFLOW\\Infiltration"
+#     shpName = "Infiltration"
+#     value = create_table_from_form(request.body, path, shpName)
+#     data = {'value': value}
+#     return JsonResponse(Result.success(data=data).to_dict())
+#
+#
+# def update_ModelData_MODFLOW_Infiltration_Table(request):
+#     shpName = "Infiltration"
+#     update_table_from_form_shp(request.body, shpName)
+#     return JsonResponse(Result.success().to_dict())
+#
+#
+# def publish_ModelData_MODFLOW_Infiltration(request):
+#     path = "ModelData\\MODFLOW\\Infiltration"
+#     shpName = "Infiltration"
+#     tableName = publish_Shp(path, shpName)
+#     update_project_setting(shpName, 1)
+#     data = {'url': "http://localhost:8080/geoserver/ModelCoupling/wms", 'name': tableName}
+#     return JsonResponse(Result.success(data=data).to_dict())
+#
+#
+# # 用于操作模型数据//MODFLOW//贮水（给水度）
+# def upLoad_ModelData_MODFLOW_WaterStorage(request):
+#     if request.method == 'POST':
+#
+#         file_name = "ModelData_MODFLOW_WaterStorage"
+#         path = "ModelData\\MODFLOW\\WaterStorage"
+#         shpName = "WaterStorage"
+#
+#         # 获取字段属性
+#         field_attributes = get_field_attributes(request, file_name, path, shpName)
+#
+#         data = {'field_attributes': field_attributes}
+#         return JsonResponse(Result.success(data=data).to_dict())
+#     elif request.method == 'GET':
+#         shpName = "WaterStorage"
+#
+#         tableName = get_project_setting(shpName)
+#         # 获取默认数据
+#         data = {'url': "http://localhost:8080/geoserver/ModelCoupling/wms", 'name': tableName}
+#         return JsonResponse(Result.success(data=data).to_dict())
+#
+#
+# def creat_ModelData_MODFLOW_WaterStorage_Table(request):
+#     path = "ModelData\\MODFLOW\\WaterStorage"
+#     shpName = "WaterStorage"
+#     value = create_table_from_form(request.body, path, shpName)
+#     data = {'value': value}
+#     return JsonResponse(Result.success(data=data).to_dict())
+#
+#
+# def update_ModelData_MODFLOW_WaterStorage_Table(request):
+#     shpName = "WaterStorage"
+#     update_table_from_form_shp(request.body, shpName)
+#     return JsonResponse(Result.success().to_dict())
+#
+#
+# def publish_ModelData_MODFLOW_WaterStorage(request):
+#     path = "ModelData\\MODFLOW\\WaterStorage"
+#     shpName = "WaterStorage"
+#     tableName = publish_Shp(path, shpName)
+#     update_project_setting(shpName, 1)
+#     data = {'url': "http://localhost:8080/geoserver/ModelCoupling/wms", 'name': tableName}
+#     return JsonResponse(Result.success(data=data).to_dict())
+#
+#
+# # 用于操作模型数据//MODFLOW//时间离散
+# def update_ModelData_MODFLOW_TimeDispersion(request):
+#     print("SS")
+#
+#
+# # 用于操作模型数据//MODFLOW//初始水位
+# def upLoad_ModelData_MODFLOW_InitialWaterLevel(request):
+#     if request.method == 'POST':
+#
+#         file_name = "ModelData_MODFLOW_InitialWaterLevel"
+#         path = "ModelData\\MODFLOW\\InitialWaterLevel"
+#         shpName = "InitialWaterLevel"
+#
+#         # 获取字段属性
+#         field_attributes = get_field_attributes(request, file_name, path, shpName)
+#
+#         data = {'field_attributes': field_attributes}
+#         return JsonResponse(Result.success(data=data).to_dict())
+#     elif request.method == 'GET':
+#         shpName = "InitialWaterLevel"
+#
+#         tableName = get_project_setting(shpName)
+#         # 获取默认数据
+#         data = {'url': "http://localhost:8080/geoserver/ModelCoupling/wms", 'name': tableName}
+#         return JsonResponse(Result.success(data=data).to_dict())
+#
+#
+# def creat_ModelData_MODFLOW_InitialWaterLevel_Table(request):
+#     path = "ModelData\\MODFLOW\\InitialWaterLevel"
+#     shpName = "InitialWaterLevel"
+#     value = create_table_from_form(request.body, path, shpName)
+#     data = {'value': value}
+#     return JsonResponse(Result.success(data=data).to_dict())
+#
+#
+# def update_ModelData_MODFLOW_InitialWaterLevel_Table(request):
+#     shpName = "InitialWaterLevel"
+#     update_table_from_form_shp(request.body, shpName)
+#     return JsonResponse(Result.success().to_dict())
+#
+#
+# def publish_ModelData_MODFLOW_InitialWaterLevel(request):
+#     path = "ModelData\\MODFLOW\\InitialWaterLevel"
+#     shpName = "InitialWaterLevel"
+#     tableName = publish_Shp(path, shpName)
+#     data = {'url': "http://localhost:8080/geoserver/ModelCoupling/wms", 'name': tableName}
+#     return JsonResponse(Result.success(data=data).to_dict())
+#
+#
+# # 用于操作模型数据//MODFLOW//路表河流
+# def upLoad_ModelData_MODFLOW_River(request):
+#     if request.method == 'POST':
+#
+#         file_name = "ModelData_MODFLOW_River"
+#         path = "ModelData\\MODFLOW\\River"
+#         shpName = "River"
+#
+#         # 获取字段属性
+#         field_attributes = get_field_attributes(request, file_name, path, shpName)
+#
+#         data = {'field_attributes': field_attributes}
+#         return JsonResponse(Result.success(data=data).to_dict())
+#     elif request.method == 'GET':
+#         shpName = "River"
+#
+#         tableName = get_project_setting(shpName)
+#         # 获取默认数据
+#         data = {'url': "http://localhost:8080/geoserver/ModelCoupling/wms", 'name': tableName}
+#         return JsonResponse(Result.success(data=data).to_dict())
+#
+#
+# def creat_ModelData_MODFLOW_River_Table(request):
+#     path = "ModelData\\MODFLOW\\River"
+#     shpName = "River"
+#     value = create_table_from_form(request.body, path, shpName)
+#     data = {'value': value}
+#     return JsonResponse(Result.success(data=data).to_dict())
+#
+#
+# def update_ModelData_MODFLOW_River_Table(request):
+#     shpName = "River"
+#     update_table_from_form_shp(request.body, shpName)
+#     return JsonResponse(Result.success().to_dict())
+#
+#
+# def publish_ModelData_MODFLOW_River(request):
+#     path = "ModelData\\MODFLOW\\River"
+#     shpName = "River"
+#     tableName = publish_Shp(path, shpName)
+#     data = {'url': "http://localhost:8080/geoserver/ModelCoupling/wms", 'name': tableName}
+#     return JsonResponse(Result.success(data=data).to_dict())
+#
+#
+# # 用于操作模型数据//EFDC//时间离散
+# def update_ModelData_EFDC_TimeDispersion(request):
+#     print("SS")
+#
+#
+# # 用于操作模型数据//EFDC//边界条件
+#
+# # 用于操作模型数据//EFDC//参数设置
+# def update_ModelData_EFDC_ParameterSetting(request):
+#     print("SS")
+#
+# endregion
+
+# 基础数据服务//基础地理数据//研究区范围
 def upLoad_BasicDataService_BasicGeographicData_StudyAreaScope(request):
     if request.method == 'POST':
 
@@ -18,10 +1155,11 @@ def upLoad_BasicDataService_BasicGeographicData_StudyAreaScope(request):
         path = "BasicDataService\\BasicGeographicData\\StudyAreaScope"
         shpName = "StudyAreaScope"
 
-        # 获取字段属性
-        field_attributes = get_field_attributes(request, file_name, path, shpName)
+        tableName = create_and_publish_shp_table_from_request(request, file_name, path, shpName)
 
-        data = {'field_attributes': field_attributes}
+        # 获取默认数据
+        data = {'url': "http://localhost:8080/geoserver/ModelCoupling/wms", 'name': tableName}
+
         return JsonResponse(Result.success(data=data).to_dict())
     elif request.method == 'GET':
         shpName = "StudyAreaScope"
@@ -32,33 +1170,99 @@ def upLoad_BasicDataService_BasicGeographicData_StudyAreaScope(request):
         return JsonResponse(Result.success(data=data).to_dict())
 
 
-def creat_BasicDataService_BasicGeographicData_StudyAreaScope_Table(request):
-    path = "BasicDataService\\BasicGeographicData\\StudyAreaScope"
-    shpName = "StudyAreaScope"
-    value = create_table_from_form(request.body, path, shpName)
-    data = {'value': value}
-    return JsonResponse(Result.success(data=data).to_dict())
+# 基础数据服务//基础地理数据//水系
+def upLoad_BasicDataService_BasicGeographicData_River(request):
+    if request.method == 'POST':
+
+        file_name = "BasicDataService_BasicGeographicData_River"
+        path = "BasicDataService\\BasicGeographicData\\River"
+        shpName = "River"
+
+        tableName = create_and_publish_shp_table_from_request(request, file_name, path, shpName)
+
+        # 获取默认数据
+        data = {'url': "http://localhost:8080/geoserver/ModelCoupling/wms", 'name': tableName}
+
+        return JsonResponse(Result.success(data=data).to_dict())
+    elif request.method == 'GET':
+        shpName = "River"
+
+        tableName = get_project_setting(shpName)
+        # 获取默认数据
+        data = {'url': "http://localhost:8080/geoserver/ModelCoupling/wms", 'name': tableName}
+        return JsonResponse(Result.success(data=data).to_dict())
 
 
-def update_BasicDataService_BasicGeographicData_StudyAreaScope_Table(request):
-    shpName = "StudyAreaScope"
-    update_table_from_form_shp(request.body, shpName)
-    return JsonResponse(Result.success().to_dict())
+# 基础数据服务//基础地理数据//行政区划
+def upLoad_BasicDataService_BasicGeographicData_AdministrativeDivision(request):
+    if request.method == 'POST':
+
+        file_name = "BasicDataService_BasicGeographicData_AdministrativeDivision"
+        path = "BasicDataService\\BasicGeographicData\\AdministrativeDivision"
+        shpName = "AdministrativeDivision"
+
+        tableName = create_and_publish_shp_table_from_request(request, file_name, path, shpName)
+
+        # 获取默认数据
+        data = {'url': "http://localhost:8080/geoserver/ModelCoupling/wms", 'name': tableName}
+
+        return JsonResponse(Result.success(data=data).to_dict())
+    elif request.method == 'GET':
+        shpName = "AdministrativeDivision"
+
+        tableName = get_project_setting(shpName)
+        # 获取默认数据
+        data = {'url': "http://localhost:8080/geoserver/ModelCoupling/wms", 'name': tableName}
+        return JsonResponse(Result.success(data=data).to_dict())
 
 
-def publish_BasicDataService_BasicGeographicData_StudyAreaScope(request):
-    path = "BasicDataService\\BasicGeographicData\\StudyAreaScope"
-    shpName = "StudyAreaScope"
-    tableName = publish_Shp(path, shpName)
-    update_project_setting(shpName, 1)
-    data = {'url': "http://localhost:8080/geoserver/ModelCoupling/wms", 'name': tableName}
-    return JsonResponse(Result.success(data=data).to_dict())
+# //基础数据服务//基础地理数据//土地利用数据
+def upLoad_BasicDataService_BasicGeographicData_LandUse(request):
+    if request.method == 'POST':
+
+        file_name = "BasicDataService_BasicGeographicData_LandUse"
+        path = "BasicDataService\\BasicGeographicData\\LandUse"
+        tifName = "LandUse"
+
+        tableName = create_and_publish_tif_request(request, file_name, path, tifName)
+
+        # 获取默认数据
+        data = {'url': "http://localhost:8080/geoserver/ModelCoupling/wms", 'name': tableName}
+
+        return JsonResponse(Result.success(data=data).to_dict())
+    elif request.method == 'GET':
+        tifName = "LandUse"
+
+        tableName = get_project_setting(tifName)
+        # 获取默认数据
+        data = {'url': "http://localhost:8080/geoserver/ModelCoupling/wms", 'name': tableName}
+        return JsonResponse(Result.success(data=data).to_dict())
 
 
-# endregion
+# //基础数据服务///基础地理数据//水文地质图
+def upLoad_BasicDataService_BasicGeographicData_HydrogeologicalMap(request):
+    if request.method == 'POST':
 
-# region 基础数据服务//监测数据//河流监测站点//流量
-# 用于操作基础数据服务//监测数据//河流监测站点//流量
+        file_name = "BasicDataService_BasicGeographicData_HydrogeologicalMap"
+        path = "BasicDataService\\BasicGeographicData\\HydrogeologicalMap"
+        shpName = "HydrogeologicalMap"
+
+        tableName = create_and_publish_shp_table_from_request(request, file_name, path, shpName)
+
+        # 获取默认数据
+        data = {'url': "http://localhost:8080/geoserver/ModelCoupling/wms", 'name': tableName}
+
+        return JsonResponse(Result.success(data=data).to_dict())
+    elif request.method == 'GET':
+        shpName = "HydrogeologicalMap"
+
+        tableName = get_project_setting(shpName)
+        # 获取默认数据
+        data = {'url': "http://localhost:8080/geoserver/ModelCoupling/wms", 'name': tableName}
+        return JsonResponse(Result.success(data=data).to_dict())
+
+
+# //基础数据服务//监测数据//河流监测站点//流量
 def upLoad_BasicDataService_MonitoringData_RiverMonitoringStation_FlowRate(request):
     if request.method == 'POST':
 
@@ -66,9 +1270,11 @@ def upLoad_BasicDataService_MonitoringData_RiverMonitoringStation_FlowRate(reque
         path = "BasicDataService\\MonitoringData\\RiverMonitoringStation\\FlowRate"
         shpName = "FlowRate"
 
-        field_attributes, xlsx_attributes = get_field_attributes_and_xlsx_attributes(request, file_name, path, shpName)
+        tableName = create_and_publish_from_request(request, file_name, path, shpName)
 
-        data = {'field_attributes': field_attributes, 'xlsx_attributes': xlsx_attributes}
+        # 获取默认数据
+        data = {'url': "http://localhost:8080/geoserver/ModelCoupling/wms", 'name': tableName}
+
         return JsonResponse(Result.success(data=data).to_dict())
     elif request.method == 'GET':
         shpName = "FlowRate"
@@ -79,84 +1285,30 @@ def upLoad_BasicDataService_MonitoringData_RiverMonitoringStation_FlowRate(reque
         return JsonResponse(Result.success(data=data).to_dict())
 
 
-def creat_BasicDataService_MonitoringData_RiverMonitoringStation_FlowRate_Table(request):
-    path = "BasicDataService\\MonitoringData\\RiverMonitoringStation\\FlowRate"
-    shpName = "FlowRate"
-    shp_attributes_list, observation_attributes_list = get_same_attributes_from_request_body(request.body)
-    shp_data, observation_data = create_table_from_data(shp_attributes_list, path, shpName,
-                                                        observation_attributes_list)
-    data = {'shp_data': shp_data, 'observation_data': observation_data}
-    return JsonResponse(Result.success(data=data).to_dict())
-
-
-def update_BasicDataService_MonitoringData_RiverMonitoringStation_FlowRate_Table(request):
-    shpName = "FlowRate"
-    update_table_from_form_shp(request.body, shpName)
-    return JsonResponse(Result.success().to_dict())
-
-
-def publish_BasicDataService_MonitoringData_RiverMonitoringStation_FlowRate(request):
-    shpName = "FlowRate"
-    path = "BasicDataService\\MonitoringData\\RiverMonitoringStation\\FlowRate"
-    tableName = publish_Shp(path, shpName)
-    update_project_setting(shpName, 2)
-    data = {'url': "http://localhost:8080/geoserver/ModelCoupling/wms", 'name': tableName}
-    return JsonResponse(Result.success(data=data).to_dict())
-
-
-# endregion
-
-# region 基础数据服务//监测数据/气象监测站点//气温
-# 用于操作基础数据服务//监测数据/气象监测站点//气温
-def upLoad_BasicDataService_MonitoringData_MeteorologicalMonitoringStation_Temperature(request):
+# //基础数据服务//监测数据//河流监测站点//水下地形
+def upLoad_BasicDataService_MonitoringData_RiverMonitoringStation_UnderwaterRelief(request):
     if request.method == 'POST':
 
-        file_name = "BasicDataService_MonitoringData_MeteorologicalMonitoringStation_Temperature"
-        path = "BasicDataService\\MonitoringData\\MeteorologicalMonitoringStation\\Temperature"
-        shpName = "Temperature"
+        file_name = "BasicDataService_MonitoringData_RiverMonitoringStation_UnderwaterRelief"
+        path = "BasicDataService\\MonitoringData\\RiverMonitoringStation\\UnderwaterRelief"
+        tifName = "UnderwaterRelief"
 
-        field_attributes, xlsx_attributes = get_field_attributes_and_xlsx_attributes(request, file_name, path, shpName)
+        tableName = create_and_publish_tif_request(request, file_name, path, tifName)
 
-        data = {'field_attributes': field_attributes, 'xlsx_attributes': xlsx_attributes}
+        # 获取默认数据
+        data = {'url': "http://localhost:8080/geoserver/ModelCoupling/wms", 'name': tableName}
+
         return JsonResponse(Result.success(data=data).to_dict())
     elif request.method == 'GET':
-        shpName = "Temperature"
+        tifName = "UnderwaterRelief"
 
-        tableName = get_project_setting(shpName)
+        tableName = get_project_setting(tifName)
         # 获取默认数据
         data = {'url': "http://localhost:8080/geoserver/ModelCoupling/wms", 'name': tableName}
         return JsonResponse(Result.success(data=data).to_dict())
 
 
-def creat_BasicDataService_MonitoringData_MeteorologicalMonitoringStation_Temperature_Table(request):
-    path = "BasicDataService\\MonitoringData\\MeteorologicalMonitoringStation\\Temperature"
-    shpName = "Temperature"
-    shp_attributes_list, observation_attributes_list = get_same_attributes_from_request_body(request.body)
-    shp_data, observation_data = create_table_from_data(shp_attributes_list, path, shpName,
-                                                        observation_attributes_list)
-    data = {'shp_data': shp_data, 'observation_data': observation_data}
-    return JsonResponse(Result.success(data=data).to_dict())
-
-
-def update_BasicDataService_MonitoringData_MeteorologicalMonitoringStation_Temperature_Table(request):
-    shpName = "Temperature"
-    update_table_from_form_shp(request.body, shpName)
-    return JsonResponse(Result.success().to_dict())
-
-
-def publish_BasicDataService_MonitoringData_MeteorologicalMonitoringStation_Temperature(request):
-    path = "BasicDataService\\MonitoringData\\MeteorologicalMonitoringStation\\Temperature"
-    shpName = "Temperature"
-    tableName = publish_Shp(path, shpName)
-    update_project_setting(shpName, 2)
-    data = {'url': "http://localhost:8080/geoserver/ModelCoupling/wms", 'name': tableName}
-    return JsonResponse(Result.success(data=data).to_dict())
-
-
-# endregion
-
-# region 基础数据服务//监测数据/气象监测站点//大气压强
-# 用于操作基础数据服务//监测数据//气象监测站点//大气压强
+# //基础数据服务//监测数据/气象监测站点//大气压强
 def upLoad_BasicDataService_MonitoringData_MeteorologicalMonitoringStation_AtmosphericPressure(request):
     if request.method == 'POST':
 
@@ -164,9 +1316,11 @@ def upLoad_BasicDataService_MonitoringData_MeteorologicalMonitoringStation_Atmos
         path = "BasicDataService\\MonitoringData\\MeteorologicalMonitoringStation\\AtmosphericPressure"
         shpName = "AtmosphericPressure"
 
-        field_attributes, xlsx_attributes = get_field_attributes_and_xlsx_attributes(request, file_name, path, shpName)
+        tableName = create_and_publish_from_request(request, file_name, path, shpName)
 
-        data = {'field_attributes': field_attributes, 'xlsx_attributes': xlsx_attributes}
+        # 获取默认数据
+        data = {'url': "http://localhost:8080/geoserver/ModelCoupling/wms", 'name': tableName}
+
         return JsonResponse(Result.success(data=data).to_dict())
     elif request.method == 'GET':
         shpName = "AtmosphericPressure"
@@ -177,36 +1331,30 @@ def upLoad_BasicDataService_MonitoringData_MeteorologicalMonitoringStation_Atmos
         return JsonResponse(Result.success(data=data).to_dict())
 
 
-def creat_BasicDataService_MonitoringData_MeteorologicalMonitoringStation_AtmosphericPressure_Table(request):
-    path = "BasicDataService\\MonitoringData\\MeteorologicalMonitoringStation\\AtmosphericPressure"
-    shpName = "AtmosphericPressure"
-    shp_attributes_list, observation_attributes_list = get_same_attributes_from_request_body(request.body)
-    shp_data, observation_data = create_table_from_data(shp_attributes_list, path, shpName,
-                                                        observation_attributes_list)
-    data = {'shp_data': shp_data, 'observation_data': observation_data}
-    return JsonResponse(Result.success(data=data).to_dict())
+# //基础数据服务//监测数据/气象监测站点//气温
+def upLoad_BasicDataService_MonitoringData_MeteorologicalMonitoringStation_Temperature(request):
+    if request.method == 'POST':
+
+        file_name = "BasicDataService_MonitoringData_MeteorologicalMonitoringStation_Temperature"
+        path = "BasicDataService\\MonitoringData\\MeteorologicalMonitoringStation\\Temperature"
+        shpName = "Temperature"
+
+        tableName = create_and_publish_from_request(request, file_name, path, shpName)
+
+        # 获取默认数据
+        data = {'url': "http://localhost:8080/geoserver/ModelCoupling/wms", 'name': tableName}
+
+        return JsonResponse(Result.success(data=data).to_dict())
+    elif request.method == 'GET':
+        shpName = "Temperature"
+
+        tableName = get_project_setting(shpName)
+        # 获取默认数据
+        data = {'url': "http://localhost:8080/geoserver/ModelCoupling/wms", 'name': tableName}
+        return JsonResponse(Result.success(data=data).to_dict())
 
 
-def update_BasicDataService_MonitoringData_MeteorologicalMonitoringStation_AtmosphericPressure_Table(request):
-    shpName = "AtmosphericPressure"
-    update_table_from_form_shp(request.body, shpName)
-    return JsonResponse(Result.success().to_dict())
-
-
-def publish_BasicDataService_MonitoringData_MeteorologicalMonitoringStation_AtmosphericPressure(request):
-    path = "BasicDataService\\MonitoringData\\MeteorologicalMonitoringStation\\AtmosphericPressure"
-    shpName = "AtmosphericPressure"
-
-    tableName = publish_Shp(path, shpName)
-    update_project_setting(shpName, 2)
-    data = {'url': "http://localhost:8080/geoserver/ModelCoupling/wms", 'name': tableName}
-    return JsonResponse(Result.success(data=data).to_dict())
-
-
-# endregion
-
-# region 基础数据服务//监测数据/气象监测站点//蒸发量
-# 用于操作基础数据服务//监测数据//气象监测站点//蒸发量
+# //基础数据服务//监测数据/气象监测站点//蒸发量
 def upLoad_BasicDataService_MonitoringData_MeteorologicalMonitoringStation_Evaporation(request):
     if request.method == 'POST':
 
@@ -214,9 +1362,11 @@ def upLoad_BasicDataService_MonitoringData_MeteorologicalMonitoringStation_Evapo
         path = "BasicDataService\\MonitoringData\\MeteorologicalMonitoringStation\\Evaporation"
         shpName = "Evaporation"
 
-        field_attributes, xlsx_attributes = get_field_attributes_and_xlsx_attributes(request, file_name, path, shpName)
+        tableName = create_and_publish_from_request(request, file_name, path, shpName)
 
-        data = {'field_attributes': field_attributes, 'xlsx_attributes': xlsx_attributes}
+        # 获取默认数据
+        data = {'url': "http://localhost:8080/geoserver/ModelCoupling/wms", 'name': tableName}
+
         return JsonResponse(Result.success(data=data).to_dict())
     elif request.method == 'GET':
         shpName = "Evaporation"
@@ -227,35 +1377,7 @@ def upLoad_BasicDataService_MonitoringData_MeteorologicalMonitoringStation_Evapo
         return JsonResponse(Result.success(data=data).to_dict())
 
 
-def creat_BasicDataService_MonitoringData_MeteorologicalMonitoringStation_Evaporation_Table(request):
-    path = "BasicDataService\\MonitoringData\\MeteorologicalMonitoringStation\\Evaporation"
-    shpName = "Evaporation"
-    shp_attributes_list, observation_attributes_list = get_same_attributes_from_request_body(request.body)
-    shp_data, observation_data = create_table_from_data(shp_attributes_list, path, shpName,
-                                                        observation_attributes_list)
-    data = {'shp_data': shp_data, 'observation_data': observation_data}
-    return JsonResponse(Result.success(data=data).to_dict())
-
-
-def update_BasicDataService_MonitoringData_MeteorologicalMonitoringStation_Evaporation_Table(request):
-    shpName = "Evaporation"
-    update_table_from_form_shp(request.body, shpName)
-    return JsonResponse(Result.success().to_dict())
-
-
-def publish_BasicDataService_MonitoringData_MeteorologicalMonitoringStation_Evaporation(request):
-    path = "BasicDataService\\MonitoringData\\MeteorologicalMonitoringStation\\Evaporation"
-    shpName = "Evaporation"
-    tableName = publish_Shp(path, shpName)
-    update_project_setting(shpName, 2)
-    data = {'url': "http://localhost:8080/geoserver/ModelCoupling/wms", 'name': tableName}
-    return JsonResponse(Result.success(data=data).to_dict())
-
-
-# endregion
-
-# region 基础数据服务//监测数据/气象监测站点//降雨量
-# 用于操作基础数据服务//监测数据//气象监测站点//降雨量
+# //基础数据服务//监测数据/气象监测站点//降雨量
 def upLoad_BasicDataService_MonitoringData_MeteorologicalMonitoringStation_Rainfall(request):
     if request.method == 'POST':
 
@@ -263,9 +1385,11 @@ def upLoad_BasicDataService_MonitoringData_MeteorologicalMonitoringStation_Rainf
         path = "BasicDataService\\MonitoringData\\MeteorologicalMonitoringStation\\Rainfall"
         shpName = "Rainfall"
 
-        field_attributes, xlsx_attributes = get_field_attributes_and_xlsx_attributes(request, file_name, path, shpName)
+        tableName = create_and_publish_from_request(request, file_name, path, shpName)
 
-        data = {'field_attributes': field_attributes, 'xlsx_attributes': xlsx_attributes}
+        # 获取默认数据
+        data = {'url': "http://localhost:8080/geoserver/ModelCoupling/wms", 'name': tableName}
+
         return JsonResponse(Result.success(data=data).to_dict())
     elif request.method == 'GET':
         shpName = "Rainfall"
@@ -276,35 +1400,7 @@ def upLoad_BasicDataService_MonitoringData_MeteorologicalMonitoringStation_Rainf
         return JsonResponse(Result.success(data=data).to_dict())
 
 
-def creat_BasicDataService_MonitoringData_MeteorologicalMonitoringStation_Rainfall_Table(request):
-    path = "BasicDataService\\MonitoringData\\MeteorologicalMonitoringStation\\Rainfall"
-    shpName = "Rainfall"
-    shp_attributes_list, observation_attributes_list = get_same_attributes_from_request_body(request.body)
-    shp_data, observation_data = create_table_from_data(shp_attributes_list, path, shpName,
-                                                        observation_attributes_list)
-    data = {'shp_data': shp_data, 'observation_data': observation_data}
-    return JsonResponse(Result.success(data=data).to_dict())
-
-
-def update_BasicDataService_MonitoringData_MeteorologicalMonitoringStation_Rainfall_Table(request):
-    shpName = "Rainfall"
-    update_table_from_form_shp(request.body, shpName)
-    return JsonResponse(Result.success().to_dict())
-
-
-def publish_BasicDataService_MonitoringData_MeteorologicalMonitoringStation_Rainfall(request):
-    path = "BasicDataService\\MonitoringData\\MeteorologicalMonitoringStation\\Rainfall"
-    shpName = "Rainfall"
-    tableName = publish_Shp(path, shpName)
-    update_project_setting(shpName, 2)
-    data = {'url': "http://localhost:8080/geoserver/ModelCoupling/wms", 'name': tableName}
-    return JsonResponse(Result.success(data=data).to_dict())
-
-
-# endregion
-
-# region 基础数据服务//监测数据/气象监测站点//太阳辐射
-# 用于操作基础数据服务//监测数据//气象监测站点//太阳辐射
+# //基础数据服务//监测数据/气象监测站点//太阳辐射
 def upLoad_BasicDataService_MonitoringData_MeteorologicalMonitoringStation_SolarRadiation(request):
     if request.method == 'POST':
 
@@ -312,9 +1408,11 @@ def upLoad_BasicDataService_MonitoringData_MeteorologicalMonitoringStation_Solar
         path = "BasicDataService\\MonitoringData\\MeteorologicalMonitoringStation\\SolarRadiation"
         shpName = "SolarRadiation"
 
-        field_attributes, xlsx_attributes = get_field_attributes_and_xlsx_attributes(request, file_name, path, shpName)
+        tableName = create_and_publish_from_request(request, file_name, path, shpName)
 
-        data = {'field_attributes': field_attributes, 'xlsx_attributes': xlsx_attributes}
+        # 获取默认数据
+        data = {'url': "http://localhost:8080/geoserver/ModelCoupling/wms", 'name': tableName}
+
         return JsonResponse(Result.success(data=data).to_dict())
     elif request.method == 'GET':
         shpName = "SolarRadiation"
@@ -325,35 +1423,7 @@ def upLoad_BasicDataService_MonitoringData_MeteorologicalMonitoringStation_Solar
         return JsonResponse(Result.success(data=data).to_dict())
 
 
-def creat_BasicDataService_MonitoringData_MeteorologicalMonitoringStation_SolarRadiation_Table(request):
-    path = "BasicDataService\\MonitoringData\\MeteorologicalMonitoringStation\\SolarRadiation"
-    shpName = "SolarRadiation"
-    shp_attributes_list, observation_attributes_list = get_same_attributes_from_request_body(request.body)
-    shp_data, observation_data = create_table_from_data(shp_attributes_list, path, shpName,
-                                                        observation_attributes_list)
-    data = {'shp_data': shp_data, 'observation_data': observation_data}
-    return JsonResponse(Result.success(data=data).to_dict())
-
-
-def update_BasicDataService_MonitoringData_MeteorologicalMonitoringStation_SolarRadiation_Table(request):
-    shpName = "SolarRadiation"
-    update_table_from_form_shp(request.body, shpName)
-    return JsonResponse(Result.success().to_dict())
-
-
-def publish_BasicDataService_MonitoringData_MeteorologicalMonitoringStation_SolarRadiation(request):
-    path = "BasicDataService\\MonitoringData\\MeteorologicalMonitoringStation\\SolarRadiation"
-    shpName = "SolarRadiation"
-    tableName = publish_Shp(path, shpName)
-    update_project_setting(shpName, 2)
-    data = {'url': "http://localhost:8080/geoserver/ModelCoupling/wms", 'name': tableName}
-    return JsonResponse(Result.success(data=data).to_dict())
-
-
-# endregion
-
-# region 基础数据服务//监测数据/气象监测站点//云量
-# 用于操作基础数据服务//监测数据//气象监测站点//云量
+# //基础数据服务//监测数据/气象监测站点//云量
 def upLoad_BasicDataService_MonitoringData_MeteorologicalMonitoringStation_CloudCover(request):
     if request.method == 'POST':
 
@@ -361,9 +1431,11 @@ def upLoad_BasicDataService_MonitoringData_MeteorologicalMonitoringStation_Cloud
         path = "BasicDataService\\MonitoringData\\MeteorologicalMonitoringStation\\CloudCover"
         shpName = "CloudCover"
 
-        field_attributes, xlsx_attributes = get_field_attributes_and_xlsx_attributes(request, file_name, path, shpName)
+        tableName = create_and_publish_from_request(request, file_name, path, shpName)
 
-        data = {'field_attributes': field_attributes, 'xlsx_attributes': xlsx_attributes}
+        # 获取默认数据
+        data = {'url': "http://localhost:8080/geoserver/ModelCoupling/wms", 'name': tableName}
+
         return JsonResponse(Result.success(data=data).to_dict())
     elif request.method == 'GET':
         shpName = "CloudCover"
@@ -374,35 +1446,7 @@ def upLoad_BasicDataService_MonitoringData_MeteorologicalMonitoringStation_Cloud
         return JsonResponse(Result.success(data=data).to_dict())
 
 
-def creat_BasicDataService_MonitoringData_MeteorologicalMonitoringStation_CloudCover_Table(request):
-    path = "BasicDataService\\MonitoringData\\MeteorologicalMonitoringStation\\CloudCover"
-    shpName = "CloudCover"
-    shp_attributes_list, observation_attributes_list = get_same_attributes_from_request_body(request.body)
-    shp_data, observation_data = create_table_from_data(shp_attributes_list, path, shpName,
-                                                        observation_attributes_list)
-    data = {'shp_data': shp_data, 'observation_data': observation_data}
-    return JsonResponse(Result.success(data=data).to_dict())
-
-
-def update_BasicDataService_MonitoringData_MeteorologicalMonitoringStation_CloudCover_Table(request):
-    shpName = "CloudCover"
-    update_table_from_form_shp(request.body, shpName)
-    return JsonResponse(Result.success().to_dict())
-
-
-def publish_BasicDataService_MonitoringData_MeteorologicalMonitoringStation_CloudCover(request):
-    path = "BasicDataService\\MonitoringData\\MeteorologicalMonitoringStation\\CloudCover"
-    shpName = "CloudCover"
-    tableName = publish_Shp(path, shpName)
-    update_project_setting(shpName, 2)
-    data = {'url': "http://localhost:8080/geoserver/ModelCoupling/wms", 'name': tableName}
-    return JsonResponse(Result.success(data=data).to_dict())
-
-
-# endregion
-
-# region 基础数据服务//监测数据/气象监测站点//风速风向
-# 用于操作基础数据服务//监测数据//气象监测站点//风速风向
+# //基础数据服务//监测数据/气象监测站点//风速风向
 def upLoad_BasicDataService_MonitoringData_MeteorologicalMonitoringStation_WindSpeedAndDirection(request):
     if request.method == 'POST':
 
@@ -410,9 +1454,11 @@ def upLoad_BasicDataService_MonitoringData_MeteorologicalMonitoringStation_WindS
         path = "BasicDataService\\MonitoringData\\MeteorologicalMonitoringStation\\WindSpeedAndDirection"
         shpName = "WindSpeedAndDirection"
 
-        field_attributes, xlsx_attributes = get_field_attributes_and_xlsx_attributes(request, file_name, path, shpName)
+        tableName = create_and_publish_from_request(request, file_name, path, shpName)
 
-        data = {'field_attributes': field_attributes, 'xlsx_attributes': xlsx_attributes}
+        # 获取默认数据
+        data = {'url': "http://localhost:8080/geoserver/ModelCoupling/wms", 'name': tableName}
+
         return JsonResponse(Result.success(data=data).to_dict())
     elif request.method == 'GET':
         shpName = "WindSpeedAndDirection"
@@ -423,35 +1469,7 @@ def upLoad_BasicDataService_MonitoringData_MeteorologicalMonitoringStation_WindS
         return JsonResponse(Result.success(data=data).to_dict())
 
 
-def creat_BasicDataService_MonitoringData_MeteorologicalMonitoringStation_WindSpeedAndDirection_Table(request):
-    path = "BasicDataService\\MonitoringData\\MeteorologicalMonitoringStation\\WindSpeedAndDirection"
-    shpName = "WindSpeedAndDirection"
-    shp_attributes_list, observation_attributes_list = get_same_attributes_from_request_body(request.body)
-    shp_data, observation_data = create_table_from_data(shp_attributes_list, path, shpName,
-                                                        observation_attributes_list)
-    data = {'shp_data': shp_data, 'observation_data': observation_data}
-    return JsonResponse(Result.success(data=data).to_dict())
-
-
-def update_BasicDataService_MonitoringData_MeteorologicalMonitoringStation_WindSpeedAndDirection_Table(request):
-    shpName = "WindSpeedAndDirection"
-    update_table_from_form_shp(request.body, shpName)
-    return JsonResponse(Result.success().to_dict())
-
-
-def publish_BasicDataService_MonitoringData_MeteorologicalMonitoringStation_WindSpeedAndDirection(request):
-    path = "BasicDataService\\MonitoringData\\MeteorologicalMonitoringStation\\WindSpeedAndDirection"
-    shpName = "WindSpeedAndDirection"
-    tableName = publish_Shp(path, shpName)
-    update_project_setting(shpName, 2)
-    data = {'url': "http://localhost:8080/geoserver/ModelCoupling/wms", 'name': tableName}
-    return JsonResponse(Result.success(data=data).to_dict())
-
-
-# endregion
-
-# region 基础数据服务//监测数据/气象监测站点//水温
-# 用于操作基础数据服务//监测数据/气象监测站点//水温
+# //基础数据服务//监测数据/气象监测站点//水温
 def upLoad_BasicDataService_MonitoringData_MeteorologicalMonitoringStation_WaterTemperature(request):
     if request.method == 'POST':
 
@@ -459,9 +1477,11 @@ def upLoad_BasicDataService_MonitoringData_MeteorologicalMonitoringStation_Water
         path = "BasicDataService\\MonitoringData\\MeteorologicalMonitoringStation\\WaterTemperature"
         shpName = "WaterTemperature"
 
-        field_attributes, xlsx_attributes = get_field_attributes_and_xlsx_attributes(request, file_name, path, shpName)
+        tableName = create_and_publish_from_request(request, file_name, path, shpName)
 
-        data = {'field_attributes': field_attributes, 'xlsx_attributes': xlsx_attributes}
+        # 获取默认数据
+        data = {'url': "http://localhost:8080/geoserver/ModelCoupling/wms", 'name': tableName}
+
         return JsonResponse(Result.success(data=data).to_dict())
     elif request.method == 'GET':
         shpName = "WaterTemperature"
@@ -472,480 +1492,273 @@ def upLoad_BasicDataService_MonitoringData_MeteorologicalMonitoringStation_Water
         return JsonResponse(Result.success(data=data).to_dict())
 
 
-def creat_BasicDataService_MonitoringData_MeteorologicalMonitoringStation_WaterTemperature_Table(request):
-    path = "BasicDataService\\MonitoringData\\MeteorologicalMonitoringStation\\WaterTemperature"
-    shpName = "WaterTemperature"
-    shp_attributes_list, observation_attributes_list = get_same_attributes_from_request_body(request.body)
-    shp_data, observation_data = create_table_from_data(shp_attributes_list, path, shpName,
-                                                        observation_attributes_list)
-    data = {'shp_data': shp_data, 'observation_data': observation_data}
-    return JsonResponse(Result.success(data=data).to_dict())
+# //基础数据服务//地形地貌数据//DEM数据
+def upLoad_BasicDataService_TopographicData_DEM(request):
+    if request.method == 'POST':
+
+        file_name = "BasicDataService_TopographicData_DEM"
+        path = "BasicDataService\\TopographicData\\DEM"
+        tifName = "DEM"
+
+        tableName = create_and_publish_tif_request(request, file_name, path, tifName)
+
+        # 获取默认数据
+        data = {'url': "http://localhost:8080/geoserver/ModelCoupling/wms", 'name': tableName}
+
+        return JsonResponse(Result.success(data=data).to_dict())
+    elif request.method == 'GET':
+        tifName = "DEM"
+
+        tableName = get_project_setting(tifName)
+        # 获取默认数据
+        data = {'url': "http://localhost:8080/geoserver/ModelCoupling/wms", 'name': tableName}
+        return JsonResponse(Result.success(data=data).to_dict())
 
 
-def update_BasicDataService_MonitoringData_MeteorologicalMonitoringStation_WaterTemperature_Table(request):
-    shpName = "WaterTemperature"
-    update_table_from_form_shp(request.body, shpName)
-    return JsonResponse(Result.success().to_dict())
+# //基础数据服务//地质数据/地质体
+def upLoad_BasicDataService_GeologicalData_GeologicalBody(request):
+    if request.method == 'POST':
+
+        file_name = "BasicDataService_GeologicalData_GeologicalBody"
+        path = "BasicDataService\\GeologicalData\\GeologicalBody"
+        shpName = "GeologicalBody"
+
+        tableName = create_and_publish_from_request(request, file_name, path, shpName)
+
+        # 获取默认数据
+        data = {'url': "http://localhost:8080/geoserver/ModelCoupling/wms", 'name': tableName}
+
+        return JsonResponse(Result.success(data=data).to_dict())
+    elif request.method == 'GET':
+        shpName = "GeologicalBody"
+
+        tableName = get_project_setting(shpName)
+        # 获取默认数据
+        data = {'url': "http://localhost:8080/geoserver/ModelCoupling/wms", 'name': tableName}
+        return JsonResponse(Result.success(data=data).to_dict())
 
 
-def publish_BasicDataService_MonitoringData_MeteorologicalMonitoringStation_WaterTemperature(request):
-    path = "BasicDataService\\MonitoringData\\MeteorologicalMonitoringStation\\WaterTemperature"
-    shpName = "WaterTemperature"
-    tableName = publish_Shp(path, shpName)
-    update_project_setting(shpName, 2)
-    data = {'url': "http://localhost:8080/geoserver/ModelCoupling/wms", 'name': tableName}
-    return JsonResponse(Result.success(data=data).to_dict())
-
-
-# endregion
-
-# region 空间离散数据//SWMM空间离散
-# 用于操作空间离散数据//SWMM空间离散
+# //空间离散//SWMM空间离散
 def upLoad_SpatialDiscreteData_SWMMSpatialDiscreteData(request):
     if request.method == 'POST':
+
         file_name = "SpatialDiscreteData_SWMMSpatialDiscreteData"
         path = "SpatialDiscreteData\\SWMMSpatialDiscreteData"
         shpName = "SWMMSpatialDiscreteData"
 
-        # 获取字段属性
-        field_attributes = get_field_attributes(request, file_name, path, shpName)
+        tableName = create_and_publish_shp_table_from_request(request, file_name, path, shpName)
 
-        data = {'field_attributes': field_attributes}
+        # 获取默认数据
+        data = {'url': "http://localhost:8080/geoserver/ModelCoupling/wms", 'name': tableName}
+
+        return JsonResponse(Result.success(data=data).to_dict())
+    elif request.method == 'GET':
+        shpName = "SWMMSpatialDiscreteData"
+
+        tableName = get_project_setting(shpName)
+        # 获取默认数据
+        data = {'url': "http://localhost:8080/geoserver/ModelCoupling/wms", 'name': tableName}
         return JsonResponse(Result.success(data=data).to_dict())
 
 
-def creat_SpatialDiscreteData_SWMMSpatialDiscreteData_Table(request):
-    path = "SpatialDiscreteData\\SWMMSpatialDiscreteData"
-    shpName = "SWMMSpatialDiscreteData"
-    value = create_table_from_form(request.body, path, shpName)
-    data = {'value': value}
-    return JsonResponse(Result.success(data=data).to_dict())
-
-
-def update_SpatialDiscreteData_SWMMSpatialDiscreteData_Table(request):
-    shpName = "SWMMSpatialDiscreteData"
-    update_table_from_form_shp(request.body, shpName)
-    return JsonResponse(Result.success().to_dict())
-
-
-def publish_SpatialDiscreteData_SWMMSpatialDiscreteData(request):
-    path = "SpatialDiscreteData\\SWMMSpatialDiscreteData"
-    shpName = "SWMMSpatialDiscreteData"
-    tableName = publish_Shp(path, shpName)
-    update_project_setting(shpName, 1)
-    data = {'url': "http://localhost:8080/geoserver/ModelCoupling/wms", 'name': tableName}
-    return JsonResponse(Result.success(data=data).to_dict())
-
-
-# endregion
-
-# region 空间离散数据//EFDC空间离散
-# 用于操作空间离散数据//EFDC空间离散
+# //空间离散//EFDC空间离散
 def upLoad_SpatialDiscreteData_EFDCSpatialDiscreteData(request):
     if request.method == 'POST':
+
         file_name = "SpatialDiscreteData_EFDCSpatialDiscreteData"
         path = "SpatialDiscreteData\\EFDCSpatialDiscreteData"
         shpName = "EFDCSpatialDiscreteData"
 
-        # 获取字段属性
-        field_attributes = get_field_attributes(request, file_name, path, shpName)
+        tableName = create_and_publish_shp_table_from_request(request, file_name, path, shpName)
 
-        data = {'field_attributes': field_attributes}
+        # 获取默认数据
+        data = {'url': "http://localhost:8080/geoserver/ModelCoupling/wms", 'name': tableName}
+
+        return JsonResponse(Result.success(data=data).to_dict())
+    elif request.method == 'GET':
+        shpName = "EFDCSpatialDiscreteData"
+
+        tableName = get_project_setting(shpName)
+        # 获取默认数据
+        data = {'url': "http://localhost:8080/geoserver/ModelCoupling/wms", 'name': tableName}
         return JsonResponse(Result.success(data=data).to_dict())
 
 
-def creat_SpatialDiscreteData_EFDCSpatialDiscreteData_Table(request):
-    path = "SpatialDiscreteData\\EFDCSpatialDiscreteData"
-    shpName = "EFDCSpatialDiscreteData"
-    value = create_table_from_form(request.body, path, shpName)
-    data = {'value': value}
-    return JsonResponse(Result.success(data=data).to_dict())
-
-
-def update_SpatialDiscreteData_EFDCSpatialDiscreteData_Table(request):
-    shpName = "EFDCSpatialDiscreteData"
-    update_table_from_form_shp(request.body, shpName)
-    return JsonResponse(Result.success().to_dict())
-
-
-def publish_SpatialDiscreteData_EFDCSpatialDiscreteData(request):
-    path = "SpatialDiscreteData\\EFDCSpatialDiscreteData"
-    shpName = "EFDCSpatialDiscreteData"
-    tableName = publish_Shp(path, shpName)
-    update_project_setting(shpName, 1)
-    data = {'url': "http://localhost:8080/geoserver/ModelCoupling/wms", 'name': tableName}
-    return JsonResponse(Result.success(data=data).to_dict())
-
-
-# endregion
-
-# region 空间离散数据//MODFLOW空间离散
-# 用于操作空间离散数据//MODFLOW空间离散
+# //空间离散//MODFLOW空间离散
 def upLoad_SpatialDiscreteData_MODFLOWSpatialDiscreteData(request):
     if request.method == 'POST':
+
         file_name = "SpatialDiscreteData_MODFLOWSpatialDiscreteData"
         path = "SpatialDiscreteData\\MODFLOWSpatialDiscreteData"
         shpName = "MODFLOWSpatialDiscreteData"
 
-        # 获取字段属性
-        field_attributes = get_field_attributes(request, file_name, path, shpName)
+        tableName = create_and_publish_shp_table_from_request(request, file_name, path, shpName)
 
-        data = {'field_attributes': field_attributes}
+        # 获取默认数据
+        data = {'url': "http://localhost:8080/geoserver/ModelCoupling/wms", 'name': tableName}
+
+        return JsonResponse(Result.success(data=data).to_dict())
+    elif request.method == 'GET':
+        shpName = "MODFLOWSpatialDiscreteData"
+
+        tableName = get_project_setting(shpName)
+        # 获取默认数据
+        data = {'url': "http://localhost:8080/geoserver/ModelCoupling/wms", 'name': tableName}
         return JsonResponse(Result.success(data=data).to_dict())
 
 
-def creat_SpatialDiscreteData_MODFLOWSpatialDiscreteData_Table(request):
-    path = "SpatialDiscreteData\\MODFLOWSpatialDiscreteData"
-    shpName = "MODFLOWSpatialDiscreteData"
-    value = create_table_from_form(request.body, path, shpName)
-    data = {'value': value}
-    return JsonResponse(Result.success(data=data).to_dict())
-
-
-def update_SpatialDiscreteData_MODFLOWSpatialDiscreteData_Table(request):
-    shpName = "MODFLOWSpatialDiscreteData"
-    update_table_from_form_shp(request.body, shpName)
-    return JsonResponse(Result.success().to_dict())
-
-
-def publish_SpatialDiscreteData_MODFLOWSpatialDiscreteData(request):
-    path = "SpatialDiscreteData\\MODFLOWSpatialDiscreteData"
-    shpName = "MODFLOWSpatialDiscreteData"
-    tableName = publish_Shp(path, shpName)
-    update_project_setting(shpName, 1)
-    data = {'url': "http://localhost:8080/geoserver/ModelCoupling/wms", 'name': tableName}
-    return JsonResponse(Result.success(data=data).to_dict())
-
-
-# endregion
-
-# region 空间离散数据//SWMM-EFDC交互单元
-# 用于操作空间离散数据//SWMM-EFDC交互单元
+# //空间离散//SWMM和EFDC交互单元
 def upLoad_SpatialDiscreteData_SWMMandEFDCInteractiveUnit(request):
     if request.method == 'POST':
+
         file_name = "SpatialDiscreteData_SWMMandEFDCInteractiveUnit"
         path = "SpatialDiscreteData\\SWMMandEFDCInteractiveUnit"
         shpName = "SWMMandEFDCInteractiveUnit"
 
-        # 获取字段属性
-        field_attributes = get_field_attributes(request, file_name, path, shpName)
+        tableName = create_and_publish_shp_table_from_request(request, file_name, path, shpName)
 
-        data = {'field_attributes': field_attributes}
+        # 获取默认数据
+        data = {'url': "http://localhost:8080/geoserver/ModelCoupling/wms", 'name': tableName}
+
+        return JsonResponse(Result.success(data=data).to_dict())
+    elif request.method == 'GET':
+        shpName = "SWMMandEFDCInteractiveUnit"
+
+        tableName = get_project_setting(shpName)
+        # 获取默认数据
+        data = {'url': "http://localhost:8080/geoserver/ModelCoupling/wms", 'name': tableName}
         return JsonResponse(Result.success(data=data).to_dict())
 
 
-def creat_SpatialDiscreteData_SWMMandEFDCInteractiveUnit_Table(request):
-    path = "SpatialDiscreteData\\SWMMandEFDCInteractiveUnit"
-    shpName = "SWMMandEFDCInteractiveUnit"
-    value = create_table_from_form(request.body, path, shpName)
-    data = {'value': value}
-    return JsonResponse(Result.success(data=data).to_dict())
-
-
-def update_SpatialDiscreteData_SWMMandEFDCInteractiveUnit_Table(request):
-    shpName = "SWMMandEFDCInteractiveUnit"
-    update_table_from_form_shp(request.body, shpName)
-    return JsonResponse(Result.success().to_dict())
-
-
-def publish_SpatialDiscreteData_SWMMandEFDCInteractiveUnit(request):
-    path = "SpatialDiscreteData\\SWMMandEFDCInteractiveUnit"
-    shpName = "SWMMandEFDCInteractiveUnit"
-    tableName = publish_Shp(path, shpName)
-    update_project_setting(shpName, 1)
-    data = {'url': "http://localhost:8080/geoserver/ModelCoupling/wms", 'name': tableName}
-    return JsonResponse(Result.success(data=data).to_dict())
-
-
-# endregion
-
-# region 空间离散数据//SWMM-MODFLOW交互单元
-# 用于操作空间离散数据//SWMM-MODFLOW交互单元
+# //空间离散//SWMM和MODFLOW交互单元
 def upLoad_SpatialDiscreteData_SWMMandMODFLOWInteractiveUnit(request):
     if request.method == 'POST':
+
         file_name = "SpatialDiscreteData_SWMMandMODFLOWInteractiveUnit"
         path = "SpatialDiscreteData\\SWMMandMODFLOWInteractiveUnit"
         shpName = "SWMMandMODFLOWInteractiveUnit"
 
-        # 获取字段属性
-        field_attributes = get_field_attributes(request, file_name, path, shpName)
+        tableName = create_and_publish_shp_table_from_request(request, file_name, path, shpName)
 
-        data = {'field_attributes': field_attributes}
+        # 获取默认数据
+        data = {'url': "http://localhost:8080/geoserver/ModelCoupling/wms", 'name': tableName}
+
+        return JsonResponse(Result.success(data=data).to_dict())
+    elif request.method == 'GET':
+        shpName = "SWMMandMODFLOWInteractiveUnit"
+
+        tableName = get_project_setting(shpName)
+        # 获取默认数据
+        data = {'url': "http://localhost:8080/geoserver/ModelCoupling/wms", 'name': tableName}
         return JsonResponse(Result.success(data=data).to_dict())
 
 
-def creat_SpatialDiscreteData_SWMMandMODFLOWInteractiveUnit_Table(request):
-    path = "SpatialDiscreteData\\SWMMandMODFLOWInteractiveUnit"
-    shpName = "SWMMandMODFLOWInteractiveUnit"
-    value = create_table_from_form(request.body, path, shpName)
-    data = {'value': value}
-    return JsonResponse(Result.success(data=data).to_dict())
-
-
-def update_SpatialDiscreteData_SWMMandMODFLOWInteractiveUnit_Table(request):
-    shpName = "SWMMandMODFLOWInteractiveUnit"
-    update_table_from_form_shp(request.body, shpName)
-    return JsonResponse(Result.success().to_dict())
-
-
-def publish_SpatialDiscreteData_SWMMandMODFLOWInteractiveUnit(request):
-    path = "SpatialDiscreteData\\SWMMandMODFLOWInteractiveUnit"
-    shpName = "SWMMandMODFLOWInteractiveUnit"
-    tableName = publish_Shp(path, shpName)
-    update_project_setting(shpName, 1)
-    data = {'url': "http://localhost:8080/geoserver/ModelCoupling/wms", 'name': tableName}
-    return JsonResponse(Result.success(data=data).to_dict())
-
-
-# endregion
-
-# region 空间离散数据//EFDC-MODFLOW交互单元
-# 用于操作空间离散数据//EFDC-MODFLOW交互单元
+# //空间离散//EFDC和MODFLOW交互单元
 def upLoad_SpatialDiscreteData_EFDCandMODFLOWInteractiveUnit(request):
     if request.method == 'POST':
+
         file_name = "SpatialDiscreteData_EFDCandMODFLOWInteractiveUnit"
         path = "SpatialDiscreteData\\EFDCandMODFLOWInteractiveUnit"
         shpName = "EFDCandMODFLOWInteractiveUnit"
 
-        # 获取字段属性
-        field_attributes = get_field_attributes(request, file_name, path, shpName)
+        tableName = create_and_publish_shp_table_from_request(request, file_name, path, shpName)
 
-        data = {'field_attributes': field_attributes}
+        # 获取默认数据
+        data = {'url': "http://localhost:8080/geoserver/ModelCoupling/wms", 'name': tableName}
+
+        return JsonResponse(Result.success(data=data).to_dict())
+    elif request.method == 'GET':
+        shpName = "EFDCandMODFLOWInteractiveUnit"
+
+        tableName = get_project_setting(shpName)
+        # 获取默认数据
+        data = {'url': "http://localhost:8080/geoserver/ModelCoupling/wms", 'name': tableName}
         return JsonResponse(Result.success(data=data).to_dict())
 
 
-def creat_SpatialDiscreteData_EFDCandMODFLOWInteractiveUnit_Table(request):
-    path = "SpatialDiscreteData\\EFDCandMODFLOWInteractiveUnit"
-    shpName = "EFDCandMODFLOWInteractiveUnit"
-    value = create_table_from_form(request.body, path, shpName)
-    data = {'value': value}
-    return JsonResponse(Result.success(data=data).to_dict())
-
-
-def update_SpatialDiscreteData_EFDCandMODFLOWInteractiveUnit_Table(request):
-    shpName = "EFDCandMODFLOWInteractiveUnit"
-    update_table_from_form_shp(request.body, shpName)
-    return JsonResponse(Result.success().to_dict())
-
-
-def publish_SpatialDiscreteData_EFDCandMODFLOWInteractiveUnit(request):
-    path = "SpatialDiscreteData\\EFDCandMODFLOWInteractiveUnit"
-    shpName = "EFDCandMODFLOWInteractiveUnit"
-    tableName = publish_Shp(path, shpName)
-    update_project_setting(shpName, 1)
-    data = {'url': "http://localhost:8080/geoserver/ModelCoupling/wms", 'name': tableName}
-    return JsonResponse(Result.success(data=data).to_dict())
-
-
-# endregion
-
-
-# region 模型数据//SWMM//空间离散//雨量计数据
-# 用于操作空模型数据//SWMM//空间离散/雨量计数据
+# 模型数据//SWMM//空间离散//降雨量
 def upLoad_ModelData_SWMM_SpatialDiscrete_RainGauge(request):
     if request.method == 'POST':
+
         file_name = "ModelData_SWMM_SpatialDiscrete_RainGauge"
         path = "ModelData\\SWMM\\SpatialDiscrete\\RainGauge"
         shpName = "RainGauge"
 
-        # 获取字段属性
-        field_attributes = get_field_attributes(request, file_name, path, shpName)
+        tableName = create_and_publish_shp_table_from_request(request, file_name, path, shpName)
 
-        data = {'field_attributes': field_attributes}
+        # 获取默认数据
+        data = {'url': "http://localhost:8080/geoserver/ModelCoupling/wms", 'name': tableName}
+
+        return JsonResponse(Result.success(data=data).to_dict())
+    elif request.method == 'GET':
+        shpName = "RainGauge"
+
+        tableName = get_project_setting(shpName)
+        # 获取默认数据
+        data = {'url': "http://localhost:8080/geoserver/ModelCoupling/wms", 'name': tableName}
         return JsonResponse(Result.success(data=data).to_dict())
 
 
-def creat_ModelData_SWMM_SpatialDiscrete_RainGauge_Table(request):
-    path = "ModelData\\SWMM\\SpatialDiscrete\\RainGauge"
-    shpName = "RainGauge"
-    value = create_table_from_form(request.body, path, shpName)
-    data = {'value': value}
-    return JsonResponse(Result.success(data=data).to_dict())
-
-
-def update_ModelData_SWMM_SpatialDiscrete_RainGauge_Table(request):
-    shpName = "RainGauge"
-    update_table_from_form_shp(request.body, shpName)
-    return JsonResponse(Result.success().to_dict())
-
-
-def publish_ModelData_SWMM_SpatialDiscrete_RainGauge(request):
-    path = "ModelData\\SWMM\\SpatialDiscrete\\RainGauge"
-    shpName = "RainGauge"
-    tableName = publish_Shp(path, shpName)
-    update_project_setting(shpName, 1)
-    data = {'url': "http://localhost:8080/geoserver/ModelCoupling/wms", 'name': tableName}
-    return JsonResponse(Result.success(data=data).to_dict())
-
-
-# endregion
-
-# region 模型数据//SWMM//空间离散//铰点数据
-# 用于操作空模型数据//SWMM//空间离散//铰点数据
+# 模型数据//SWMM//空间离散//节点
 def upLoad_ModelData_SWMM_SpatialDiscrete_Junction(request):
     if request.method == 'POST':
+
         file_name = "ModelData_SWMM_SpatialDiscrete_Junction"
         path = "ModelData\\SWMM\\SpatialDiscrete\\Junction"
         shpName = "Junction"
 
-        # 获取字段属性
-        field_attributes = get_field_attributes(request, file_name, path, shpName)
+        tableName = create_and_publish_shp_table_from_request(request, file_name, path, shpName)
 
-        data = {'field_attributes': field_attributes}
+        # 获取默认数据
+        data = {'url': "http://localhost:8080/geoserver/ModelCoupling/wms", 'name': tableName}
+
         return JsonResponse(Result.success(data=data).to_dict())
-
-
-def creat_ModelData_SWMM_SpatialDiscrete_Junction_Table(request):
-    path = "ModelData\\SWMM\\SpatialDiscrete\\Junction"
-    shpName = "Junction"
-    value = create_table_from_form(request.body, path, shpName)
-    data = {'value': value}
-    return JsonResponse(Result.success(data=data).to_dict())
-
-
-def update_ModelData_SWMM_SpatialDiscrete_Junction_Table(request):
-    shpName = "Junction"
-    update_table_from_form_shp(request.body, shpName)
-    return JsonResponse(Result.success().to_dict())
-
-
-def publish_ModelData_SWMM_SpatialDiscrete_Junction(request):
-    path = "ModelData\\SWMM\\SpatialDiscrete\\Junction"
-    shpName = "Junction"
-    tableName = publish_Shp(path, shpName)
-    update_project_setting(shpName, 1)
-    data = {'url': "http://localhost:8080/geoserver/ModelCoupling/wms", 'name': tableName}
-    return JsonResponse(Result.success(data=data).to_dict())
-
-
-# endregion
-
-def update_ModelData_SWMM_TimeDispersion(request):
-    print("SS")
-
-
-# region 模型数据//SWMM//参数设置//HRU参数
-# 用于操作空模型数据//SWMM//参数设置/HRU参数
-def upLoad_ModelData_SWMM_ParameterSetting_HRU(request):
-    if request.method == 'POST':
-        file_name = "ModelData_SWMM_ParameterSetting_HRU"
-        path = "ModelData\\SWMM\\ParameterSetting\\HRU"
-        shpName = "HRU"
-
-        # 获取字段属性
-        field_attributes = get_field_attributes(request, file_name, path, shpName)
-
-        data = {'field_attributes': field_attributes}
-        return JsonResponse(Result.success(data=data).to_dict())
-
-
-def creat_ModelData_SWMM_ParameterSetting_HRU_Table(request):
-    path = "ModelData\\SWMM\\ParameterSetting\\HRU"
-    shpName = "HRU"
-    value = create_table_from_form(request.body, path, shpName)
-    data = {'value': value}
-    return JsonResponse(Result.success(data=data).to_dict())
-
-
-def update_ModelData_SWMM_ParameterSetting_HRU_Table(request):
-    shpName = "HRU"
-    update_table_from_form_shp(request.body, shpName)
-    return JsonResponse(Result.success().to_dict())
-
-
-def publish_ModelData_SWMM_ParameterSetting_HRU(request):
-    path = "ModelData\\SWMM\\ParameterSetting\\HRU"
-    shpName = "HRU"
-    tableName = publish_Shp(path, shpName)
-    update_project_setting(shpName, 1)
-    data = {'url': "http://localhost:8080/geoserver/ModelCoupling/wms", 'name': tableName}
-    return JsonResponse(Result.success(data=data).to_dict())
-
-
-# endregion
-
-# region 模型数据//SWMM//参数设置//雨量计参数
-# 用于操作空模型数据//SWMM//参数设置//雨量计参数
-def upLoad_ModelData_SWMM_ParameterSetting_RainGauge(request):
-    if request.method == 'POST':
-        file_name = "ModelData_SWMM_ParameterSetting_RainGauge"
-        path = "ModelData\\SWMM\\ParameterSetting\\RainGauge"
-        shpName = "RainGauge"
-
-        # 获取字段属性
-        field_attributes = get_field_attributes(request, file_name, path, shpName)
-
-        data = {'field_attributes': field_attributes}
-        return JsonResponse(Result.success(data=data).to_dict())
-
-
-def creat_ModelData_SWMM_ParameterSetting_RainGauge_Table(request):
-    path = "ModelData\\SWMM\\ParameterSetting\\RainGauge"
-    shpName = "RainGauge"
-    value = create_table_from_form(request.body, path, shpName)
-    data = {'value': value}
-    return JsonResponse(Result.success(data=data).to_dict())
-
-
-def update_ModelData_SWMM_ParameterSetting_RainGauge_Table(request):
-    shpName = "RainGauge"
-    update_table_from_form_shp(request.body, shpName)
-    return JsonResponse(Result.success().to_dict())
-
-
-def publish_ModelData_SWMM_ParameterSetting_RainGauge(request):
-    path = "ModelData\\SWMM\\ParameterSetting\\RainGauge"
-    shpName = "RainGauge"
-    tableName = publish_Shp(path, shpName)
-    update_project_setting(shpName, 1)
-    data = {'url': "http://localhost:8080/geoserver/ModelCoupling/wms", 'name': tableName}
-    return JsonResponse(Result.success(data=data).to_dict())
-
-
-# endregion
-
-# region 模型数据//SWMM//参数设置//节点参数
-# 用于操作空模型数据//SWMM//参数设置//节点参数
-def upLoad_ModelData_SWMM_ParameterSetting_Junction(request):
-    if request.method == 'POST':
-        file_name = "ModelData_SWMM_ParameterSetting_Junction"
-        path = "ModelData//SWMM//ParameterSetting//Junction"
+    elif request.method == 'GET':
         shpName = "Junction"
 
-        # 获取字段属性
-        field_attributes = get_field_attributes(request, file_name, path, shpName)
-
-        data = {'field_attributes': field_attributes}
+        tableName = get_project_setting(shpName)
+        # 获取默认数据
+        data = {'url': "http://localhost:8080/geoserver/ModelCoupling/wms", 'name': tableName}
         return JsonResponse(Result.success(data=data).to_dict())
 
 
-def creat_ModelData_SWMM_ParameterSetting_Junction_Table(request):
-    path = "ModelData//SWMM//ParameterSetting//Junction"
-    shpName = "Junction"
-    value = create_table_from_form(request.body, path, shpName)
-    data = {'value': value}
-    return JsonResponse(Result.success(data=data).to_dict())
+# 模型数据//SWMM//参数离散//HRU
+def upLoad_ModelData_SWMM_ParameterDiscrete_HRU(request):
+    if request.method == 'POST':
+        file_name = "ModelData_SWMM_ParameterDiscrete_HRU"
+        path = "ModelData\\SWMM\\ParameterDiscrete\\HRU"
+        fileName = "HRU"
+
+        create_and_publish_spreadsheet_request(request, file_name, path, fileName)
+
+        return JsonResponse(Result.success().to_dict())
 
 
-def update_ModelData_SWMM_ParameterSetting_PointFile_Junction_Table(request):
-    shpName = "EFDCandMODFLOWSSpatialDiscreteData"
-    update_table_from_form_shp(request.body, shpName)
-    return JsonResponse(Result.success().to_dict())
+# 模型数据//SWMM//参数离散//RainGauge
+def upLoad_ModelData_SWMM_ParameterDiscrete_RainGauge(request):
+    if request.method == 'POST':
+        file_name = "ModelData_SWMM_ParameterDiscrete_RainGauge"
+        path = "ModelData\\SWMM\\ParameterDiscrete\\RainGauge"
+        fileName = "RainGauge"
+
+        create_and_publish_spreadsheet_request(request, file_name, path, fileName)
+
+        return JsonResponse(Result.success().to_dict())
 
 
-def publish_ModelData_SWMM_ParameterSetting_JunctionJunction(request):
-    path = "ModelData//SWMM//ParameterSetting//Junction"
-    shpName = "Junction"
-    tableName = publish_Shp(path, shpName)
-    update_project_setting(shpName, 1)
-    data = {'url': "http://localhost:8080/geoserver/ModelCoupling/wms", 'name': tableName}
-    return JsonResponse(Result.success(data=data).to_dict())
+# 模型数据//SWMM//参数离散//RainGauge
+def upLoad_ModelData_SWMM_ParameterDiscrete_Junction(request):
+    if request.method == 'POST':
+        file_name = "ModelData_SWMM_ParameterDiscrete_Junction"
+        path = "ModelData\\SWMM\\ParameterDiscrete\\Junction"
+        fileName = "Junction"
+
+        create_and_publish_spreadsheet_request(request, file_name, path, fileName)
+
+        return JsonResponse(Result.success().to_dict())
 
 
-# endregion
-
-
-# 用于操作模型数据//MODFLOW//渗透（水力传导）
+# 模型数据//MODFLOW//渗透（水力传导）
 def upLoad_ModelData_MODFLOW_Infiltration(request):
     if request.method == 'POST':
 
@@ -953,10 +1766,11 @@ def upLoad_ModelData_MODFLOW_Infiltration(request):
         path = "ModelData\\MODFLOW\\Infiltration"
         shpName = "Infiltration"
 
-        # 获取字段属性
-        field_attributes = get_field_attributes(request, file_name, path, shpName)
+        tableName = create_and_publish_shp_table_from_request(request, file_name, path, shpName)
 
-        data = {'field_attributes': field_attributes}
+        # 获取默认数据
+        data = {'url': "http://localhost:8080/geoserver/ModelCoupling/wms", 'name': tableName}
+
         return JsonResponse(Result.success(data=data).to_dict())
     elif request.method == 'GET':
         shpName = "Infiltration"
@@ -967,44 +1781,22 @@ def upLoad_ModelData_MODFLOW_Infiltration(request):
         return JsonResponse(Result.success(data=data).to_dict())
 
 
-def creat_ModelData_MODFLOW_Infiltration_Table(request):
-    path = "ModelData\\MODFLOW\\Infiltration"
-    shpName = "Infiltration"
-    value = create_table_from_form(request.body, path, shpName)
-    data = {'value': value}
-    return JsonResponse(Result.success(data=data).to_dict())
-
-
-def update_ModelData_MODFLOW_Infiltration_Table(request):
-    shpName = "Infiltration"
-    update_table_from_form_shp(request.body, shpName)
-    return JsonResponse(Result.success().to_dict())
-
-
-def publish_ModelData_MODFLOW_Infiltration(request):
-    path = "ModelData\\MODFLOW\\Infiltration"
-    shpName = "Infiltration"
-    tableName = publish_Shp(path, shpName)
-    update_project_setting(shpName, 1)
-    data = {'url': "http://localhost:8080/geoserver/ModelCoupling/wms", 'name': tableName}
-    return JsonResponse(Result.success(data=data).to_dict())
-
-
-# 用于操作模型数据//MODFLOW//贮水（给水度）
-def upLoad_ModelData_MODFLOW_WaterStorage(request):
+# 模型数据//MODFLOW//贮水（给水度）
+def upLoad_ModelData_MODFLOW_StoreWater(request):
     if request.method == 'POST':
 
-        file_name = "ModelData_MODFLOW_WaterStorage"
-        path = "ModelData\\MODFLOW\\WaterStorage"
-        shpName = "WaterStorage"
+        file_name = "ModelData_MODFLOW_StoreWater"
+        path = "ModelData\\MODFLOW\\StoreWater"
+        shpName = "StoreWater"
 
-        # 获取字段属性
-        field_attributes = get_field_attributes(request, file_name, path, shpName)
+        tableName = create_and_publish_shp_table_from_request(request, file_name, path, shpName)
 
-        data = {'field_attributes': field_attributes}
+        # 获取默认数据
+        data = {'url': "http://localhost:8080/geoserver/ModelCoupling/wms", 'name': tableName}
+
         return JsonResponse(Result.success(data=data).to_dict())
     elif request.method == 'GET':
-        shpName = "WaterStorage"
+        shpName = "StoreWater"
 
         tableName = get_project_setting(shpName)
         # 获取默认数据
@@ -1012,93 +1804,44 @@ def upLoad_ModelData_MODFLOW_WaterStorage(request):
         return JsonResponse(Result.success(data=data).to_dict())
 
 
-def creat_ModelData_MODFLOW_WaterStorage_Table(request):
-    path = "ModelData\\MODFLOW\\WaterStorage"
-    shpName = "WaterStorage"
-    value = create_table_from_form(request.body, path, shpName)
-    data = {'value': value}
-    return JsonResponse(Result.success(data=data).to_dict())
-
-
-def update_ModelData_MODFLOW_WaterStorage_Table(request):
-    shpName = "WaterStorage"
-    update_table_from_form_shp(request.body, shpName)
-    return JsonResponse(Result.success().to_dict())
-
-
-def publish_ModelData_MODFLOW_WaterStorage(request):
-    path = "ModelData\\MODFLOW\\WaterStorage"
-    shpName = "WaterStorage"
-    tableName = publish_Shp(path, shpName)
-    update_project_setting(shpName, 1)
-    data = {'url': "http://localhost:8080/geoserver/ModelCoupling/wms", 'name': tableName}
-    return JsonResponse(Result.success(data=data).to_dict())
-
-
-# 用于操作模型数据//MODFLOW//时间离散
-def update_ModelData_MODFLOW_TimeDispersion(request):
-    print("SS")
-
-
-# 用于操作模型数据//MODFLOW//初始水位
+# 模型数据//MODFLOW//初始水位
 def upLoad_ModelData_MODFLOW_InitialWaterLevel(request):
     if request.method == 'POST':
 
         file_name = "ModelData_MODFLOW_InitialWaterLevel"
         path = "ModelData\\MODFLOW\\InitialWaterLevel"
-        shpName = "InitialWaterLevel"
+        shpName = "MODFLOW_InitialWaterLevel"
 
-        # 获取字段属性
-        field_attributes = get_field_attributes(request, file_name, path, shpName)
-
-        data = {'field_attributes': field_attributes}
-        return JsonResponse(Result.success(data=data).to_dict())
-    elif request.method == 'GET':
-        shpName = "InitialWaterLevel"
-
-        tableName = get_project_setting(shpName)
+        tableName = create_and_publish_from_request(request, file_name, path, shpName)
         # 获取默认数据
         data = {'url': "http://localhost:8080/geoserver/ModelCoupling/wms", 'name': tableName}
+
+        return JsonResponse(Result.success(data=data).to_dict())
+    elif request.method == 'GET':
+        shpName = "MODFLOW_InitialWaterLevel"
+
+        data = get_data(shpName)
+
+
         return JsonResponse(Result.success(data=data).to_dict())
 
 
-def creat_ModelData_MODFLOW_InitialWaterLevel_Table(request):
-    path = "ModelData\\MODFLOW\\InitialWaterLevel"
-    shpName = "InitialWaterLevel"
-    value = create_table_from_form(request.body, path, shpName)
-    data = {'value': value}
-    return JsonResponse(Result.success(data=data).to_dict())
-
-
-def update_ModelData_MODFLOW_InitialWaterLevel_Table(request):
-    shpName = "InitialWaterLevel"
-    update_table_from_form_shp(request.body, shpName)
-    return JsonResponse(Result.success().to_dict())
-
-
-def publish_ModelData_MODFLOW_InitialWaterLevel(request):
-    path = "ModelData\\MODFLOW\\InitialWaterLevel"
-    shpName = "InitialWaterLevel"
-    tableName = publish_Shp(path, shpName)
-    data = {'url': "http://localhost:8080/geoserver/ModelCoupling/wms", 'name': tableName}
-    return JsonResponse(Result.success(data=data).to_dict())
-
-
-# 用于操作模型数据//MODFLOW//路表河流
-def upLoad_ModelData_MODFLOW_River(request):
+# 模型数据//MODFLOW//初始水位
+def upLoad_ModelData_MODFLOW_SurfaceRive(request):
     if request.method == 'POST':
 
-        file_name = "ModelData_MODFLOW_River"
-        path = "ModelData\\MODFLOW\\River"
-        shpName = "River"
+        file_name = "ModelData_MODFLOW_SurfaceRive"
+        path = "ModelData\\MODFLOW\\SurfaceRive"
+        shpName = "SurfaceRive_Point"
 
-        # 获取字段属性
-        field_attributes = get_field_attributes(request, file_name, path, shpName)
+        tableName = create_and_publish_from_request(request, file_name, path, shpName)
 
-        data = {'field_attributes': field_attributes}
+        # 获取默认数据
+        data = {'url': "http://localhost:8080/geoserver/ModelCoupling/wms", 'name': tableName}
+
         return JsonResponse(Result.success(data=data).to_dict())
     elif request.method == 'GET':
-        shpName = "River"
+        shpName = "SurfaceRive_Point"
 
         tableName = get_project_setting(shpName)
         # 获取默认数据
@@ -1106,35 +1849,136 @@ def upLoad_ModelData_MODFLOW_River(request):
         return JsonResponse(Result.success(data=data).to_dict())
 
 
-def creat_ModelData_MODFLOW_River_Table(request):
-    path = "ModelData\\MODFLOW\\River"
-    shpName = "River"
-    value = create_table_from_form(request.body, path, shpName)
-    data = {'value': value}
-    return JsonResponse(Result.success(data=data).to_dict())
+# 模型数据//EFDC//初始水位
+def upLoad_ModelData_EFDC_InitialWaterLevel(request):
+    if request.method == 'POST':
+
+        file_name = "ModelData_EFDC_InitialWaterLevel"
+        path = "ModelData\\EFDC\\InitialWaterLevel"
+        shpName = "EFDC_InitialWaterLevel"
+
+        tableName = create_and_publish_shp_table_from_request(request, file_name, path, shpName)
+
+        # 获取默认数据
+        data = {'url': "http://localhost:8080/geoserver/ModelCoupling/wms", 'name': tableName}
+
+        return JsonResponse(Result.success(data=data).to_dict())
+    elif request.method == 'GET':
+        shpName = "EFDC_InitialWaterLevel"
+
+        tableName = get_project_setting(shpName)
+        # 获取默认数据
+        data = {'url': "http://localhost:8080/geoserver/ModelCoupling/wms", 'name': tableName}
+        return JsonResponse(Result.success(data=data).to_dict())
 
 
-def update_ModelData_MODFLOW_River_Table(request):
-    shpName = "River"
-    update_table_from_form_shp(request.body, shpName)
+# 模型数据//EFDC//初始水位
+def upLoad_ModelData_EFDC_Parameter(request):
+    if request.method == 'POST':
+        file_name = "ModelData_EFDC_Parameter"
+        path = "ModelData\\EFDC\\Parameter"
+        fileName = "EFDC_Parameter"
+
+        create_and_publish_spreadsheet_request(request, file_name, path, fileName)
+
+        return JsonResponse(Result.success().to_dict())
+
+
+# 设置总时间离散
+def get_total_time(request):
+    if request.method == "GET":
+        start_time, end_time = get_total_time_from_table()
+        # 获取默认数据
+        data = {'start_time': start_time, 'end_time': end_time}
+        return JsonResponse(Result.success(data).to_dict())
+    elif request.method == "POST":
+        # 解码请求的原始数据
+        body_unicode = request.body.decode('utf-8')
+        # 将数据解析为 JSON 对象
+        body_data = json.loads(body_unicode)
+
+        data_dict = {
+            "total_start_time": parser.isoparse(body_data['startTime']).astimezone(tz.gettz('Asia/Shanghai')).strftime(
+                "%Y-%m-%d %H:%M:%S.%f"),
+            "total_end_time": parser.isoparse(body_data['endTime']).astimezone(tz.gettz('Asia/Shanghai')).strftime(
+                "%Y-%m-%d %H:%M:%S.%f"),
+        }
+
+        set_time(data_dict)
+        return JsonResponse(Result.success().to_dict())
+
+
+def set_swmm_time(request):
+    # 解码请求的原始数据
+    body_unicode = request.body.decode('utf-8')
+    # 将数据解析为 JSON 对象
+    body_data = json.loads(body_unicode)
+
+    data_dict = {
+        "swmm_wet": parser.isoparse(body_data['swmm_wet']).astimezone(tz.gettz('Asia/Shanghai')).strftime(
+            "%H:%M:%S"),
+        "swmm_dry": parser.isoparse(body_data['swmm_dry']).astimezone(tz.gettz('Asia/Shanghai')).strftime(
+            "%H:%M:%S"),
+        "swmm_calculate": parser.isoparse(body_data['swmm_calculate']).astimezone(tz.gettz('Asia/Shanghai')).strftime(
+            "%H:%M:%S"),
+    }
+
+    set_time(data_dict)
     return JsonResponse(Result.success().to_dict())
 
 
-def publish_ModelData_MODFLOW_River(request):
-    path = "ModelData\\MODFLOW\\River"
-    shpName = "River"
-    tableName = publish_Shp(path, shpName)
-    data = {'url': "http://localhost:8080/geoserver/ModelCoupling/wms", 'name': tableName}
-    return JsonResponse(Result.success(data=data).to_dict())
+def set_modflow_time(request):
+    if request.method == "GET":
+        time = get_modflow_time_from_table()
+        # 获取默认数据
+        data = {'time': time}
+        return JsonResponse(Result.success(data).to_dict())
+    elif request.method == "POST":
+        body_unicode = request.body.decode('utf-8')
+        body_data = json.loads(body_unicode)
+        data_dict = {
+            "modflow_calculate_time": body_data["modflow_calculate_step"] + " " + body_data["modflow_calculate_unit"]
+        }
+        set_time(data_dict)
+        return JsonResponse(Result.success().to_dict())
 
 
-# 用于操作模型数据//EFDC//时间离散
-def update_ModelData_EFDC_TimeDispersion(request):
-    print("SS")
+def set_efdc_time(request):
+    body_unicode = request.body.decode('utf-8')
+    body_data = json.loads(body_unicode)
+    data_dict = {
+        "efdc_calculate_step": body_data["efdc_calculate_step"],
+        "efdc_output_step": body_data["efdc_output_step"]
+    }
+
+    set_time(data_dict)
+    return JsonResponse(Result.success().to_dict())
 
 
-# 用于操作模型数据//EFDC//边界条件
+def get_all_upload_files(request):
+    files = get_all_upload_files_from_table()
+    models = validate_data()
+    data_dict = {
+        "files": files,
+        "models": models
+    }
+    return JsonResponse(Result.success(data_dict).to_dict())
 
-# 用于操作模型数据//EFDC//参数设置
-def update_ModelData_EFDC_ParameterSetting(request):
-    print("SS")
+
+def get_all_layers(request):
+    data = get_all_layers_from_table()
+    return JsonResponse(Result.success(data).to_dict())
+
+
+def run_file(request):
+    run_swmm_modflow_efdc_model()
+    return JsonResponse(Result.success().to_dict())
+
+
+def modify_data(request):
+    # 解码请求的原始数据
+    body_unicode = request.body.decode('utf-8')
+    # 将数据解析为 JSON 对象
+    body_data = json.loads(body_unicode)
+    modifyData(body_data)
+    return JsonResponse(Result.success().to_dict())

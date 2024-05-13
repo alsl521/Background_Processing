@@ -3,7 +3,7 @@ from Utils.CreateFolders import create_user_model_folders
 from Utils.DeleteFiles import delete_folder_contents_only
 
 
-def handling_spreadsheet_files(filename, file):
+def handling_spreadsheet_files(filename, file, shpName):
     """
         处理电子表格文件。
 
@@ -27,11 +27,11 @@ def handling_spreadsheet_files(filename, file):
     parts = filename.split("_")
 
     if file_parts[1] == "txt":
-        handling_txt_files(parts[-1], file)
+        handling_txt_files(shpName, file)
     elif file_parts[1] == "xlsx":
-        handling_xlsx_files(parts[-1], file)
+        handling_xlsx_files(shpName, file)
     elif file_parts[1] == "xls":
-        handling_xls_files(parts[-1], file)
+        handling_xls_files(shpName, file)
 
     copy_models_files("Data/TemporaryFolder", folder_path)
 

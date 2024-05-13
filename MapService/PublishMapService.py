@@ -54,8 +54,21 @@ def publish_Shp(path, tablename):
 
     query = f"SELECT {select_clause} FROM {table_name}"
 
+    print("publish_Shp：" + query)
+
     prj_file_path = os.path.join("Data", "Admin", path, tablename + ".prj")
     epsg_code = get_epsg_from_prj(prj_file_path)
     geo.publish_featurestore_sqlview(store_name='ModelCoupledServer', name=table_name, sql=query, key_column='fid',
                                      srid=epsg_code, workspace='ModelCoupling')
-    return table_name
+
+
+def publish_Tiff(path, tablename):
+    table_name = "Admin" + "_" + tablename
+
+    # 将数据库中的数据发布到GeoServer
+    geo = Geoserver('http://223.2.45.130:57910/geoserver', username='admin',
+                    password='geoserver')  # Creating a Geoserver instance
+
+    tif_file_path = os.path.join("Data", "Admin", path, tablename + ".tif")
+
+    geo.create_coveragestore(layer_name=table_name, path=tif_file_path, workspace='ModelCoupling')

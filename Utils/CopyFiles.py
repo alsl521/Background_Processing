@@ -15,3 +15,22 @@ def copy_models_files(source_folder, destination_folder):
 
             # 复制文件
             shutil.copy2(file_path, destination_path)
+
+
+def copy_swmm_result_files(source_folder, destination_folder):
+    for root, dirs, files in os.walk(source_folder):
+        for file_name in files:
+            file_path = os.path.join(root, file_name)
+            target_file = os.path.join(destination_folder, file_name)
+            if file_name == "infilx.txt" or file_name == "outflow.txt" or file_name == "test1.out" or file_name == "test1.rep":
+                shutil.copy(file_path, target_file)
+
+
+def copy_efdc_result_files(source_folder, destination_folder):
+    for root, dirs, files in os.walk(source_folder):
+        for file_name in files:
+            file_path = os.path.join(root, file_name)
+            target_file = os.path.join(destination_folder, file_name)
+            shutil.copy(file_path, target_file)
+
+

@@ -4,7 +4,7 @@ import shutil
 
 
 # 解压.zip格式的文件
-def Unzip_Zip_Files(filePath, targetFolder, filename):
+def Unzip_Zip_Files(filePath, targetFolder, shpName):
     """
     解压.zip格式的文件到目标文件夹。
 
@@ -13,8 +13,7 @@ def Unzip_Zip_Files(filePath, targetFolder, filename):
         targetFolder (str): 目标文件夹路径。
         filename (str): 文件名称
     """
-    parts = filename.split("_")
-    filename = parts[-1]
+    filename = shpName
     # 使用zipfile库打开.zip文件
     with zipfile.ZipFile(filePath, 'r') as zip_ref:
         # 遍历zip文件中的每个文件

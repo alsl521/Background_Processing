@@ -4,7 +4,7 @@ from Utils.CreateFolders import create_user_model_folders
 from Utils.DeleteFiles import delete_folder_contents_only
 
 
-def handling_compressed_files(filename, file):
+def handling_compressed_files(filename, file, shpName):
     """
     处理压缩文件并返回发布的表的名称。
 
@@ -25,7 +25,7 @@ def handling_compressed_files(filename, file):
     file_parts = file_name.split('.')
 
     if file_parts[1] == "zip":
-        handling_zip_files(filename, file)
+        handling_zip_files(file, shpName)
     elif file_parts[1] == "rar":
         print("sssss")
     elif file_parts[1] == "7z":
@@ -34,7 +34,7 @@ def handling_compressed_files(filename, file):
     copy_models_files("Data/TemporaryFolder", folder_path)
 
 
-def handling_zip_files(filename, file):
+def handling_zip_files(file, shpName):
     """
     处理ZIP文件，包括存储文件、解压文件和处理shp数据。
 
@@ -56,4 +56,4 @@ def handling_zip_files(filename, file):
     f.close()
 
     # 解压文件
-    Unzip_Zip_Files(filePath, "Data/TemporaryFolder", filename)
+    Unzip_Zip_Files(filePath, "Data/TemporaryFolder", shpName)

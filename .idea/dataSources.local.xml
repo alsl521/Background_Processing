@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
-  <component name="dataSourceStorageLocal" created-in="PY-233.14475.56">
+  <component name="dataSourceStorageLocal" created-in="PY-241.14494.241">
     <data-source name="ModelCoupledDatabase@localhost" uuid="e0358f08-4a90-4450-a370-07825c0500ac">
       <database-info product="PostgreSQL" version="15.5" jdbc-version="4.2" driver-name="PostgreSQL JDBC Driver" driver-version="42.6.0" dbms="POSTGRES" exact-version="15.5" exact-driver-version="42.6">
         <identifier-quote-string>&quot;</identifier-quote-string>
@@ -16,7 +16,7 @@
         </introspection-scope>
       </schema-mapping>
     </data-source>
-    <data-source name="Django default" uuid="09401fa7-992e-49f6-b184-bba11a9d542d">
+    <data-source name="Django default" uuid="b0faa26d-182b-4fbf-819c-1d499e24a495">
       <database-info product="PostgreSQL" version="15.5" jdbc-version="4.2" driver-name="PostgreSQL JDBC Driver" driver-version="42.6.0" dbms="POSTGRES" exact-version="15.5" exact-driver-version="42.6">
         <identifier-quote-string>&quot;</identifier-quote-string>
       </database-info>
